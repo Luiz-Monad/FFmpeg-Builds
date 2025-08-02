@@ -1,0 +1,111 @@
+name: Build FFmpeg Matrix
+
+on:
+  schedule:
+    - cron: "0 12 * * *"
+
+  workflow_dispatch:
+    inputs:
+      doRelease:
+        description: "Publish new release"
+        type: boolean
+        default: false
+      buildOnly:
+        description: "Only build ffmpeg"
+        type: boolean
+        default: false
+
+env:
+  MATRIX_JSON: |
+    {
+      "combo": [
+        "macos::aarch64-ios-clang",
+        "macos::aarch64-ios-xcode"
+        "macos::aarch64-macos-clang",
+        "macos::aarch64-macos-xcode",
+        "macos::x86_64-macos-clang",
+        "macos::x86_64-macos-xcode",
+        "ubuntu::aarch64-android-clang",
+        "ubuntu::aarch64-ios-cross-clang",
+        "ubuntu::aarch64-linux-clang",
+        "ubuntu::aarch64-macos-cross-clang",
+        "ubuntu::aarch64-windows-cross-clang",
+        "ubuntu::armhf-linux-clang",
+        "ubuntu::x86_64-android-clang",
+        "ubuntu::x86_64-linux-clang",
+        "ubuntu::x86_64-macos-cross-clang",
+        "ubuntu::x86_64-windows-cross-clang",
+        "windows::aarch64-windows-clang",
+        "windows::aarch64-windows-msvc",
+        "windows::x86_64-windows-clang",
+        "windows::x86_64-windows-msvc",
+      ]
+    }
+  VARIANT_JSON: |
+    {
+      "variant": [
+        "gpl 7.1.1",
+        "lgpl 7.1.1",
+        "shared 7.1.1",
+        "static 7.1.1"
+      ]
+    }
+
+jobs:
+  build_targets:
+    name: Build Targets
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        combo: ${{ fromJSON(env.MATRIX_JSON).combo }}
+
+    steps:
+      - name: Parse runner & triplet
+        id: parse
+        run: |
+          IFS="::" read runner triplet <<< "${{ matrix.combo }}"
+          echo "runner=$runner" >> $GITHUB_OUTPUT
+          echo "target=$triplet" >> $GITHUB_OUTPUT
+
+      - name: Build Base Targets
+        uses: ./.github/workflows/build.yml
+        if: ${{ github.event.inputs.buildOnly != 'true' }}
+        with:
+          buildBase: true
+          buildTargetBase: true
+          buildTargetVariant: false
+          buildFFmpegOnly: false
+          publishRelease: false
+          runner: ${{ steps.parse.outputs.runner }}
+          target: ${{ steps.parse.outputs.target }}
+          variant: base
+
+  build_ffmpeg:
+    name: Build FFmpeg Variants
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        combo: ${{ fromJSON(env.MATRIX_JSON).combo }}
+        variant: ${{ fromJSON(env.VARIANT_JSON).variant }}
+
+    steps:
+      - name: Parse runner & triplet
+        id: parse
+        run: |
+          IFS="::" read runner triplet <<< "${{ matrix.combo }}"
+          echo "runner=$runner" >> $GITHUB_OUTPUT
+          echo "target=$triplet" >> $GITHUB_OUTPUT
+
+      - name: Build Target
+        uses: ./.github/workflows/build.yml
+        with:
+          buildBase: false
+          buildTargetBase: false
+          buildTargetVariant: ${{ github.event.inputs.buildOnly != 'true' }}
+          buildFFmpegOnly: ${{ github.event.inputs.buildOnly == 'true' }}
+          publishRelease: ${{ github.event_name == 'schedule' || github.event.inputs.doRelease }}
+          runner: ${{ steps.parse.outputs.runner }}
+          target: ${{ steps.parse.outputs.target }}
+          variant: ${{ matrix.variant }}

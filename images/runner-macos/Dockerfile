@@ -23,8 +23,9 @@ ENV CARGO_HOME="/opt/cargo" RUSTUP_HOME="/opt/rustup" PATH="/opt/cargo/bin:${PAT
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --no-modify-path && \
     cargo install cargo-c && rm -rf "${CARGO_HOME}"/registry "${CARGO_HOME}"/git
 
-RUN --mount=src=.,dst=/input \
-    for s in /input/*.sh; do cp $s /usr/bin/$(echo $s | sed -e 's|.*/||' -e 's/\.sh$//'); done
+COPY --from=runner-base /runner/ /input/
+RUN for s in /input/*.sh; do cp "$s" /usr/bin/$(basename "$s" .sh); done
+RUN rm -rf /input/
 
 ENV HOST_CC="gcc" \
     HOST_CXX="g++" \
