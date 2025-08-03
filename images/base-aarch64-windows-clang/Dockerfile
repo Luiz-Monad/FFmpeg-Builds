@@ -1,5 +1,5 @@
-ARG GH_REPO=ghcr.io/btbn/ffmpeg-builds
-FROM $GH_REPO/base:latest
+ARG GH_REPO=ghcr.io/Luiz-Monad/FFmpeg-Builds
+FROM $GH_REPO/runner-$RUNNER:latest
 
 RUN \
     git clone --filter=blob:none https://github.com/mstorsjo/llvm-mingw /llvm-mingw && cd /llvm-mingw && \
