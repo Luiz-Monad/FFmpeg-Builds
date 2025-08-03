@@ -4,7 +4,7 @@ SCRIPT_REPO="https://github.com/Haivision/srt.git"
 SCRIPT_COMMIT="0c570a10e30686552be0f6b9b19ce6a64daed598"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {

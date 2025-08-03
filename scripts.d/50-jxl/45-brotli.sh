@@ -4,7 +4,7 @@ SCRIPT_REPO="https://github.com/google/brotli.git"
 SCRIPT_COMMIT="a47d7475063eb223c87632eed806c0070e70da29"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {

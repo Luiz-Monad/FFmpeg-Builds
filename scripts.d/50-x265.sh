@@ -4,8 +4,8 @@ SCRIPT_REPO="https://bitbucket.org/multicoreware/x265_git.git"
 SCRIPT_COMMIT="cd4f0d6e9d30766f5e2be89dab2e6809f3b76507"
 
 ffbuild_enabled() {
-    [[ $VARIANT == lgpl* ]] && return -1
-    return 0
+    [[ $VARIANT == lgpl* ]] && return $FFBUILD_FALSE
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerdl() {
@@ -25,7 +25,7 @@ ffbuild_dockerbuild() {
 
     sed -i '1i#include <cstdint>' source/dynamicHDR10/json11/json11.cpp
 
-    if [[ $TARGET != *32 ]]; then
+    if [[ $TARGET != armhf-* ]]; then
         mkdir 8bit 10bit 12bit
         cmake "${common_config[@]}" -DHIGH_BIT_DEPTH=ON -DEXPORT_C_API=OFF -DENABLE_HDR10_PLUS=ON -DMAIN12=ON -S source -B 12bit &
         cmake "${common_config[@]}" -DHIGH_BIT_DEPTH=ON -DEXPORT_C_API=OFF -DENABLE_HDR10_PLUS=ON -S source -B 10bit &
@@ -77,9 +77,9 @@ ffbuild_unconfigure() {
 }
 
 ffbuild_cflags() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_ldflags() {
-    return 0
+    return $FFBUILD_TRUE
 }

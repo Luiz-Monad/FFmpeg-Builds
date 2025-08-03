@@ -4,8 +4,8 @@ SCRIPT_REPO="https://chromium.googlesource.com/webm/libvpx"
 SCRIPT_COMMIT="ae32a476b2297ae435499acd24eafcf2ff47f0f5"
 
 ffbuild_enabled() {
-    [[ $TARGET == winarm64 ]] && return -1
-    return 0
+    [[ $TARGET == aarch64-windows-* ]] && return $FFBUILD_FALSE
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -21,34 +21,29 @@ ffbuild_dockerbuild() {
         --prefix="$FFBUILD_PREFIX"
     )
 
-    if [[ $TARGET == win64 ]]; then
+    if [[ $TARGET == x86_64-windows-* ]]; then
         myconf+=(
             --target=x86_64-win64-gcc
         )
         export CROSS="$FFBUILD_CROSS_PREFIX"
-    elif [[ $TARGET == win32 ]]; then
-        myconf+=(
-            --target=x86-win32-gcc
-        )
-        export CROSS="$FFBUILD_CROSS_PREFIX"
-    elif [[ $TARGET == winarm64 ]]; then
+    elif [[ $TARGET == aarch64-windows-* ]]; then
         myconf+=(
             --target=arm64-win64-gcc
         )
         export CROSS="$FFBUILD_CROSS_PREFIX"
-    elif [[ $TARGET == linux64 ]]; then
+    elif [[ $TARGET == x86_64-linux-* ]]; then
         myconf+=(
             --target=x86_64-linux-gcc
         )
         export CROSS="$FFBUILD_CROSS_PREFIX"
-    elif [[ $TARGET == linuxarm64 ]]; then
+    elif [[ $TARGET == aarch64-linux-* ]]; then
         myconf+=(
             --target=arm64-linux-gcc
         )
         export CROSS="$FFBUILD_CROSS_PREFIX"
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     ./configure "${myconf[@]}"

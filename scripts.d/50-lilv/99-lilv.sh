@@ -4,7 +4,7 @@ SCRIPT_REPO="https://github.com/lv2/lilv.git"
 SCRIPT_COMMIT="56c88198edf777e75f4e5a96aebbaf6da620f26c"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -20,13 +20,13 @@ ffbuild_dockerbuild() {
         -Dbindings_py=disabled
     )
 
-    if [[ $TARGET == win* || $TARGET == linux* ]]; then
+    if [[ $TARGET == *-windows-* || $TARGET == *-linux-* ]]; then
         myconf+=(
             --cross-file=/cross.meson
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     meson "${myconf[@]}" ..

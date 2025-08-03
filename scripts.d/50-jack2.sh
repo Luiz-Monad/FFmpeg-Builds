@@ -4,8 +4,8 @@ SCRIPT_REPO="https://github.com/jackaudio/jack2.git"
 SCRIPT_COMMIT="4f58969432339a250ce87fe855fb962c67d00ddb"
 
 ffbuild_enabled() {
-    [[ $TARGET == linux* ]] || return 1
-    return 0
+    [[ $TARGET != *-linux-* ]] && return $FFBUILD_FALSE
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {

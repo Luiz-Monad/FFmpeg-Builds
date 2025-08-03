@@ -4,8 +4,8 @@ SCRIPT_REPO="https://github.com/mstorsjo/fdk-aac.git"
 SCRIPT_COMMIT="2ef9a141c40bf254bde7d22c197c615db5b265ed"
 
 ffbuild_enabled() {
-    [[ $VARIANT == nonfree* ]] || return -1
-    return 0
+    [[ $VARIANT != *nonfree* ]] && return $FFBUILD_FALSE
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -19,13 +19,13 @@ ffbuild_dockerbuild() {
         --disable-example
     )
 
-    if [[ $TARGET == win* || $TARGET == linux* ]]; then
+    if [[ $TARGET == *-windows-* || $TARGET == *-linux-* ]]; then
         myconf+=(
             --host="$FFBUILD_TOOLCHAIN"
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     ./configure "${myconf[@]}"

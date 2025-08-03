@@ -4,7 +4,7 @@ SCRIPT_REPO="https://code.videolan.org/videolan/dav1d.git"
 SCRIPT_COMMIT="716164239ad6e6b11c5dcdaa3fb540309d499833"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -16,13 +16,13 @@ ffbuild_dockerbuild() {
         --default-library=static
     )
 
-    if [[ $TARGET == win* || $TARGET == linux* ]]; then
+    if [[ $TARGET == *-windows-* || $TARGET == *-linux-* ]]; then
         myconf+=(
             --cross-file=/cross.meson
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     meson "${myconf[@]}" ..

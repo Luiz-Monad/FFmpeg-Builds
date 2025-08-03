@@ -4,8 +4,7 @@ SCRIPT_REPO="https://github.com/KhronosGroup/SPIRV-Cross.git"
 SCRIPT_COMMIT="d8e3e2b141b8c8a167b2e3984736a6baacff316c"
 
 ffbuild_enabled() {
-    [[ $ADDINS_STR == *4.4* ]] && return -1
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {

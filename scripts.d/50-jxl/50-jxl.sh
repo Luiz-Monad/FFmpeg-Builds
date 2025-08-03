@@ -4,11 +4,7 @@ SCRIPT_REPO="https://github.com/libjxl/libjxl.git"
 SCRIPT_COMMIT="24357f189c233c03fb46368a142a0b2c1a949f9d"
 
 ffbuild_enabled() {
-    [[ $ADDINS_STR == *4.4* ]] && return -1
-    [[ $ADDINS_STR == *5.0* ]] && return -1
-    [[ $ADDINS_STR == *5.1* ]] && return -1
-    [[ $ADDINS_STR == *6.0* ]] && return -1
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerdl() {
@@ -19,10 +15,10 @@ ffbuild_dockerdl() {
 ffbuild_dockerbuild() {
     mkdir build && cd build
 
-    if [[ $TARGET == linux* ]]; then
+    if [[ $TARGET == *-linux-* ]]; then
         # our glibc is too old(<2.25), and their detection fails for some reason
         export CXXFLAGS="$CXXFLAGS -DVQSORT_GETRANDOM=0 -DVQSORT_SECURE_SEED=0"
-    elif [[ $TARGET == win32 || $TARGET == win64 ]]; then
+    elif [[ $TARGET == x86_64-windows-* ]]; then
         # Fix AVX2 related crash due to unaligned stack memory
         export CXXFLAGS="$CXXFLAGS -Wa,-muse-unaligned-vector-move"
         export CFLAGS="$CFLAGS -Wa,-muse-unaligned-vector-move"
@@ -36,7 +32,7 @@ ffbuild_dockerbuild() {
     ninja -j$(nproc)
     ninja install
 
-    if [[ $TARGET == win* ]]; then
+    if [[ $TARGET == *-windows-* ]]; then
         echo "Libs.private: -lstdc++ -ladvapi32" >> "${FFBUILD_PREFIX}"/lib/pkgconfig/libjxl.pc
         echo "Libs.private: -lstdc++ -ladvapi32" >> "${FFBUILD_PREFIX}"/lib/pkgconfig/libjxl_threads.pc
     else
@@ -52,7 +48,5 @@ ffbuild_configure() {
 }
 
 ffbuild_unconfigure() {
-    [[ $ADDINS_STR == *4.4* ]] && return 0
-    [[ $ADDINS_STR == *5.0* ]] && return 0
     echo --disable-libjxl
 }

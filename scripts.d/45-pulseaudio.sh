@@ -4,8 +4,8 @@ SCRIPT_REPO="https://gitlab.freedesktop.org/pulseaudio/pulseaudio.git"
 SCRIPT_COMMIT="98c7c9eafb148c6e66e5fe178fc156b00f3bf51a"
 
 ffbuild_enabled() {
-    [[ $TARGET == linux* ]] || return 1
-    return 0
+    [[ $TARGET != *-linux-* ]] && return $FFBUILD_FALSE
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerdl() {
@@ -36,13 +36,13 @@ ffbuild_dockerbuild() {
         -Dopenssl=enabled
     )
 
-    if [[ $TARGET == linux* ]]; then
+    if [[ $TARGET == *-linux-* ]]; then
         myconf+=(
             --cross-file=/cross.meson
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     meson "${myconf[@]}" ..

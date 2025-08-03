@@ -4,8 +4,8 @@ SCRIPT_REPO="https://git.linuxtv.org/v4l-utils.git"
 SCRIPT_COMMIT="9bdabf8793f40e5df74435b2df94b5567b55805d"
 
 ffbuild_enabled() {
-    [[ $TARGET == linux* ]] || return 1
-    return 0
+    [[ $TARGET != *-linux-* ]] && return $FFBUILD_FALSE
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {

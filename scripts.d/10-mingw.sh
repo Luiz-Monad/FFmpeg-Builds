@@ -4,18 +4,18 @@ SCRIPT_REPO="https://git.code.sf.net/p/mingw-w64/mingw-w64.git"
 SCRIPT_COMMIT="4dd74f2993902ccc685cde69c8cdd5d7f05130ea"
 
 ffbuild_enabled() {
-    [[ $TARGET == win* ]] || return -1
-    return 0
+    [[ $TARGET != *-windows-* ]] && return $FFBUILD_TRUE
+    return $FFBUILD_FALSE
 }
 
 ffbuild_dockerlayer() {
-    [[ $TARGET == winarm* ]] && return 0
+    [[ $TARGET == aarch64-windows-* ]] && return $FFBUILD_TRUE
     to_df "COPY --link --from=${SELFLAYER} /opt/mingw/. /"
     to_df "COPY --link --from=${SELFLAYER} /opt/mingw/. /opt/mingw"
 }
 
 ffbuild_dockerfinal() {
-    [[ $TARGET == winarm* ]] && return 0
+    [[ $TARGET == aarch64-windows-* ]] && return $FFBUILD_TRUE
     to_df "COPY --link --from=${PREVLAYER} /opt/mingw/. /"
 }
 
@@ -24,7 +24,7 @@ ffbuild_dockerdl() {
 }
 
 ffbuild_dockerbuild() {
-    [[ $TARGET == winarm* ]] && return 0
+    [[ $TARGET == aarch64-windows-* ]] && return $FFBUILD_TRUE
 
     if [[ -z "$COMPILER_SYSROOT" ]]; then
         COMPILER_SYSROOT="$(${CC} -print-sysroot)/usr/${FFBUILD_TOOLCHAIN}"

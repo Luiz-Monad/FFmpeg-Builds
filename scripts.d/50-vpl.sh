@@ -4,11 +4,8 @@ SCRIPT_REPO="https://github.com/intel/libvpl.git"
 SCRIPT_COMMIT="c45b5d786bf7cdabbe49ff1bab78693ad78feb78"
 
 ffbuild_enabled() {
-    [[ $TARGET == *arm64 ]] && return -1
-    [[ $ADDINS_STR == *4.4* ]] && return -1
-    [[ $ADDINS_STR == *5.0* ]] && return -1
-    [[ $ADDINS_STR == *5.1* ]] && return -1
-    return 0
+    [[ $TARGET == aarch64-* ]] && return $FFBUILD_FALSE
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -33,9 +30,5 @@ ffbuild_configure() {
 }
 
 ffbuild_unconfigure() {
-    [[ $ADDINS_STR == *4.4* ]] && return 0
-    [[ $ADDINS_STR == *5.0* ]] && return 0
-    [[ $ADDINS_STR == *5.1* ]] && return 0
-
     echo --disable-libvpl
 }

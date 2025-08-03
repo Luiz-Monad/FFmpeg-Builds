@@ -4,16 +4,17 @@ SCRIPT_REPO="https://github.com/fraunhoferhhi/vvenc.git"
 SCRIPT_COMMIT="3d433fcbca16af3e8f9525020383880d1808ee52"
 
 ffbuild_enabled() {
-    [[ $TARGET != *32 ]] || return -1
-    (( $(ffbuild_ffver) > 700 )) || return -1
-    return 0
+    [[ $TARGET == armhf-* ]] && return $FFBUILD_FALSE
+    # (( $(ffbuild_ffver) <= 700 )) && return $FFBUILD_FALSE
+    # LF: I enabled this
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
     mkdir build && cd build
 
     local armsimd=()
-    if [[ $TARGET == *arm* ]]; then
+    if [[ $TARGET == armhf-* || $TARGET == aarch64-* ]]; then
         armsimd+=( -DVVENC_ENABLE_ARM_SIMD=ON )
 
         if [[ "$CC" != *clang* ]]; then
@@ -37,6 +38,6 @@ ffbuild_configure() {
 }
 
 ffbuild_unconfigure() {
-    (( $(ffbuild_ffver) > 700 )) || return 0
+    (( $(ffbuild_ffver) > 700 )) || return $FFBUILD_TRUE
     echo --disable-libvvenc
 }

@@ -4,13 +4,13 @@ SCRIPT_REPO="https://gitlab.freedesktop.org/vdpau/libvdpau.git"
 SCRIPT_COMMIT="eac1393480bc7c2209d4984819951cb9dc1e03d0"
 
 ffbuild_enabled() {
-    [[ $TARGET == linux* ]] || return 1
-    return 0
+    [[ $TARGET != *-linux-* ]] && return $FFBUILD_FALSE
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
     git-mini-clone "$SCRIPT_REPO" "$SCRIPT_COMMIT" libvdpau
-    cd libvdpau || exit 1
+    cd libvdpau
 
     if [[ -x ./autogen.sh ]]; then
         ./autogen.sh

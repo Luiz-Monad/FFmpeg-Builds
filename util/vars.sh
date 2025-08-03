@@ -30,6 +30,9 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
+FFBUILD_TRUE=0
+FFBUILD_FALSE=-1
+
 REPO="${GITHUB_REPOSITORY:-Luiz-Monad/FFmpeg-Builds}"
 REPO="${REPO,,}"
 REGISTRY="${REGISTRY_OVERRIDE:-ghcr.io}"
@@ -39,21 +42,6 @@ IMAGE="${REGISTRY}/${REPO}/${TARGET}-${VARIANT}${ADDINS_STR:+-}${ADDINS_STR}:lat
 
 ffbuild_ffver() {
     case "$ADDINS_STR" in
-    *4.4*)
-        echo 404
-        ;;
-    *5.0*)
-        echo 500
-        ;;
-    *5.1*)
-        echo 501
-        ;;
-    *6.0*)
-        echo 600
-        ;;
-    *6.1*)
-        echo 601
-        ;;
     *7.0*)
         echo 700
         ;;
@@ -87,49 +75,49 @@ ffbuild_dockerfinal() {
 }
 
 ffbuild_configure() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_unconfigure() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_cflags() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_uncflags() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_cxxflags() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_uncxxflags() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_ldexeflags() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_unldexeflags() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_ldflags() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_unldflags() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_libs() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_unlibs() {
-    return 0
+    return $FFBUILD_TRUE
 }

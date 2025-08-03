@@ -4,8 +4,7 @@ SCRIPT_REPO="https://github.com/google/shaderc.git"
 SCRIPT_COMMIT="c8456388a27b048b93e9082b36202c06200c8887"
 
 ffbuild_enabled() {
-    [[ $ADDINS_STR == *4.4* ]] && return -1
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerdl() {
@@ -31,13 +30,13 @@ ffbuild_dockerbuild() {
 
     cp "$FFBUILD_PREFIX"/lib/pkgconfig/{shaderc_combined,shaderc}.pc
 
-    if [[ $TARGET == win* ]]; then
+    if [[ $TARGET == *-windows-* ]]; then
         rm -r "$FFBUILD_PREFIX"/bin "$FFBUILD_PREFIX"/lib/*.dll.a
-    elif [[ $TARGET == linux* ]]; then
+    elif [[ $TARGET == *-linux-* ]]; then
         rm -r "$FFBUILD_PREFIX"/bin "$FFBUILD_PREFIX"/lib/*.so*
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 }
 
@@ -46,6 +45,5 @@ ffbuild_configure() {
 }
 
 ffbuild_unconfigure() {
-    [[ $ADDINS_STR == *4.4* ]] && return 0
     echo --disable-libshaderc
 }

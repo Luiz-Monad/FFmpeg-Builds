@@ -4,7 +4,7 @@ SCRIPT_REPO="https://github.com/google/snappy.git"
 SCRIPT_COMMIT="6af9287fbdb913f0794d0148c6aa43b58e63c8e3"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {

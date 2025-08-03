@@ -4,7 +4,7 @@ SCRIPT_REPO="https://github.com/xiph/opus.git"
 SCRIPT_COMMIT="31cdaa9f94a58f4db0b2d913fcddc83b1bde994e"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerdl() {
@@ -21,7 +21,7 @@ ffbuild_dockerbuild() {
         --disable-extra-programs
     )
 
-    if [[ $TARGET == winarm* ]]; then
+    if [[ $TARGET == aarch64-windows-* ]]; then
         myconf+=(
             --disable-rtcd
         )

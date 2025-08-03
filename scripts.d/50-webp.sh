@@ -4,7 +4,7 @@ SCRIPT_REPO="https://chromium.googlesource.com/webm/libwebp"
 SCRIPT_COMMIT="08b51dd130a2e934a1ff5cdc063bd51fc0e956e6"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -26,13 +26,13 @@ ffbuild_dockerbuild() {
         --disable-gif
     )
 
-    if [[ $TARGET == win* || $TARGET == linux* ]]; then
+    if [[ $TARGET == *-windows-* || $TARGET == *-linux-* ]]; then
         myconf+=(
             --host="$FFBUILD_TOOLCHAIN"
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     ./configure "${myconf[@]}"

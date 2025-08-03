@@ -4,7 +4,7 @@ SCRIPT_REPO="https://github.com/cisco/openh264.git"
 SCRIPT_COMMIT="0c9a557a9a6f1d267c4d372221669a8ae69ccda0"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -19,34 +19,29 @@ ffbuild_dockerbuild() {
         AR="$AR"
     )
 
-    if [[ $TARGET == win32 ]]; then
-        myconf+=(
-            OS=mingw_nt
-            ARCH=i686
-        )
-    elif [[ $TARGET == win64 ]]; then
+    if [[ $TARGET == x86_64-windows-* ]]; then
         myconf+=(
             OS=mingw_nt
             ARCH=x86_64
         )
-    elif [[ $TARGET == winarm64 ]]; then
+    elif [[ $TARGET == aarch64-windows-* ]]; then
         myconf+=(
             OS=mingw_nt
             ARCH=aarch64
         )
-    elif [[ $TARGET == linux64 ]]; then
+    elif [[ $TARGET == x86_64-linux-* ]]; then
         myconf+=(
             OS=linux
             ARCH=x86_64
         )
-    elif [[ $TARGET == linuxarm64 ]]; then
+    elif [[ $TARGET == aarch64-linux-* ]]; then
         myconf+=(
             OS=linux
             ARCH=aarch64
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     make -j$(nproc) "${myconf[@]}" install-static

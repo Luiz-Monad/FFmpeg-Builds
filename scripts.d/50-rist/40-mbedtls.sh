@@ -5,7 +5,7 @@ SCRIPT_COMMIT="v3.6.4"
 SCRIPT_TAGFILTER="v3.*"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerdl() {
@@ -14,10 +14,6 @@ ffbuild_dockerdl() {
 }
 
 ffbuild_dockerbuild() {
-    if [[ $TARGET == win32 ]]; then
-        python3 scripts/config.py unset MBEDTLS_AESNI_C
-    fi
-
     mkdir build && cd build
 
     # Let's hope this is just a false-positive
@@ -33,7 +29,7 @@ ffbuild_dockerbuild() {
     make -j$(nproc)
     make install
 
-    if [[ $TARGET == win* ]]; then
+    if [[ $TARGET == *-windows-* ]]; then
         echo "Libs.private: -lws2_32 -lbcrypt -lwinmm -lgdi32" >> "$FFBUILD_PREFIX"/lib/pkgconfig/mbedcrypto.pc
     fi
 }

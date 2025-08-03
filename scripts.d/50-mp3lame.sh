@@ -4,7 +4,7 @@ SCRIPT_REPO="https://svn.code.sf.net/p/lame/svn/trunk/lame"
 SCRIPT_REV="6531"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerdl() {
@@ -25,13 +25,13 @@ ffbuild_dockerbuild() {
         --disable-decoder
     )
 
-    if [[ $TARGET == win* || $TARGET == linux* ]]; then
+    if [[ $TARGET == *-windows-* || $TARGET == *-linux-* ]]; then
         myconf+=(
             --host="$FFBUILD_TOOLCHAIN"
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     export CFLAGS="$CFLAGS -DNDEBUG -Wno-error=incompatible-pointer-types"

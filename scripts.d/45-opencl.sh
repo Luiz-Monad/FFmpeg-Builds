@@ -7,7 +7,7 @@ SCRIPT_REPO2="https://github.com/KhronosGroup/OpenCL-ICD-Loader.git"
 SCRIPT_COMMIT2="9482bbe926b1560d7a9911573cf05bf723ecb166"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerdl() {
@@ -39,10 +39,10 @@ ffbuild_dockerbuild() {
     echo "Version: 9999" >> OpenCL.pc
     echo "Cflags: -I\${includedir}" >> OpenCL.pc
 
-    if [[ $TARGET == linux* ]]; then
+    if [[ $TARGET == *-linux-* ]]; then
         echo "Libs: -L\${libdir} -lOpenCL" >> OpenCL.pc
         echo "Libs.private: -ldl" >> OpenCL.pc
-    elif [[ $TARGET == win* ]]; then
+    elif [[ $TARGET == *-windows-* ]]; then
         echo "Libs: -L\${libdir} -l:OpenCL.a" >> OpenCL.pc
         echo "Libs.private: -lole32 -lshlwapi -lcfgmgr32" >> OpenCL.pc
     fi

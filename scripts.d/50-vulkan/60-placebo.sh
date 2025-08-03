@@ -4,8 +4,10 @@ SCRIPT_REPO="https://code.videolan.org/videolan/libplacebo.git"
 SCRIPT_COMMIT="686ed7e80dc711fe2f6af572f1b4f4c259791a25"
 
 ffbuild_enabled() {
-    (( $(ffbuild_ffver) > 600 )) || return -1
-    return 0
+    # (( $(ffbuild_ffver) <= 600 )) && return $FFBUILD_TRUE
+    # return $FFBUILD_FALSE
+    # LF: I enabled this
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerdl() {
@@ -33,19 +35,19 @@ ffbuild_dockerbuild() {
         -Dfuzz=false
     )
 
-    if [[ $TARGET == win* ]]; then
+    if [[ $TARGET == *-windows-* ]]; then
         myconf+=(
             -Dd3d11=enabled
         )
     fi
 
-    if [[ $TARGET == win* || $TARGET == linux* ]]; then
+    if [[ $TARGET == *-windows-* || $TARGET == *-linux-* ]]; then
         myconf+=(
             --cross-file=/cross.meson
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     meson "${myconf[@]}" ..
@@ -60,6 +62,5 @@ ffbuild_configure() {
 }
 
 ffbuild_unconfigure() {
-    [[ $ADDINS_STR == *4.4* ]] && return 0
     echo --disable-libplacebo
 }

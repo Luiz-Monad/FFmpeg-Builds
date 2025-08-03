@@ -4,7 +4,7 @@ SCRIPT_REPO="https://code.videolan.org/rist/librist.git"
 SCRIPT_COMMIT="1a5013b59ce098465e835a0510cd395872bb1c24"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -20,19 +20,19 @@ ffbuild_dockerbuild() {
         -Dtest=false
     )
 
-    if [[ $TARGET == win* ]]; then
+    if [[ $TARGET == *-windows-* ]]; then
         myconf+=(
             -Dhave_mingw_pthreads=true
         )
     fi
 
-    if [[ $TARGET == win* || $TARGET == linux* ]]; then
+    if [[ $TARGET == *-windows-* || $TARGET == *-linux-* ]]; then
         myconf+=(
             --cross-file=/cross.meson
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     meson "${myconf[@]}" ..

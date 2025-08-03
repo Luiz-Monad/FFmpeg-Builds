@@ -4,7 +4,7 @@ SCRIPT_REPO="https://github.com/drobilla/sord.git"
 SCRIPT_COMMIT="91bb85f4f1d93739dca77b8b885d884c1d8a07e5"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -19,13 +19,13 @@ ffbuild_dockerbuild() {
         -Dtests=disabled
     )
 
-    if [[ $TARGET == win* || $TARGET == linux* ]]; then
+    if [[ $TARGET == *-windows-* || $TARGET == *-linux-* ]]; then
         myconf+=(
             --cross-file=/cross.meson
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     meson "${myconf[@]}" ..

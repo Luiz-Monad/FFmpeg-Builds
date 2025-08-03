@@ -4,7 +4,7 @@ SCRIPT_REPO="https://github.com/Netflix/vmaf.git"
 SCRIPT_COMMIT="b9ac69e6c4231fad0465021f9e31a841a18261db"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -24,13 +24,13 @@ ffbuild_dockerbuild() {
         -Denable_float=true
     )
 
-    if [[ $TARGET == win* || $TARGET == linux* ]]; then
+    if [[ $TARGET == *-windows-* || $TARGET == *-linux-* ]]; then
         myconf+=(
             --cross-file=/cross.meson
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     meson "${myconf[@]}" ../libvmaf || cat meson-logs/meson-log.txt
@@ -41,8 +41,6 @@ ffbuild_dockerbuild() {
 }
 
 ffbuild_configure() {
-    [[ $ADDINS_STR == *4.4* ]] && return 0
-    [[ $ADDINS_STR == *5.0* ]] && return 0
     echo --enable-libvmaf
 }
 

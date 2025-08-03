@@ -4,7 +4,7 @@ SCRIPT_REPO="https://github.com/xiph/theora.git"
 SCRIPT_COMMIT="23161c4a63fd9f9d09b9e972f95def2d56c777af"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -22,13 +22,13 @@ ffbuild_dockerbuild() {
         --disable-doc
     )
 
-    if [[ $TARGET == win* || $TARGET == linux* ]]; then
+    if [[ $TARGET == *-windows-* || $TARGET == *-linux-* ]]; then
         myconf+=(
             --host="$FFBUILD_TOOLCHAIN"
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     ./configure "${myconf[@]}"

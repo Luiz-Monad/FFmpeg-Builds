@@ -4,12 +4,8 @@ SCRIPT_REPO="https://github.com/intel/libva.git"
 SCRIPT_COMMIT="0d1d3510c0a88dcc78f88981d60b525ed4dbb6ba"
 
 ffbuild_enabled() {
-    [[ $ADDINS_STR == *4.4* && $TARGET == win* ]] && return -1
-    [[ $ADDINS_STR == *5.0* && $TARGET == win* ]] && return -1
-    [[ $ADDINS_STR == *5.1* && $TARGET == win* ]] && return -1
-    [[ $ADDINS_STR == *6.0* && $TARGET == win* ]] && return -1
-    [[ $TARGET == linuxarm64 ]] && return -1
-    return 0
+    [[ $TARGET == aarch64-linux-* ]] && return $FFBUILD_FALSE
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -30,7 +26,7 @@ ffbuild_dockerbuild() {
         -Denable_docs=false
     )
 
-    if [[ $TARGET == linux64 ]]; then
+    if [[ $TARGET == x86_64-linux-* ]]; then
         myconf+=(
             --cross-file=/cross.meson
             --default-library=shared
@@ -41,7 +37,7 @@ ffbuild_dockerbuild() {
             -Dwith_glx=no
             -Dwith_wayland=no
         )
-    elif [[ $TARGET == win* ]]; then
+    elif [[ $TARGET == *-windows-* ]]; then
         myconf+=(
             --cross-file=/cross.meson
             --default-library=static
@@ -49,7 +45,7 @@ ffbuild_dockerbuild() {
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     export CFLAGS="$RAW_CFLAGS"
@@ -59,7 +55,7 @@ ffbuild_dockerbuild() {
     ninja -j"$(nproc)"
     ninja install
 
-    if [[ $TARGET == linux* ]]; then
+    if [[ $TARGET == *-linux-* ]]; then
         gen-implib "$FFBUILD_PREFIX"/lib/{libva.so.2,libva.a}
         gen-implib "$FFBUILD_PREFIX"/lib/{libva-drm.so.2,libva-drm.a}
         gen-implib "$FFBUILD_PREFIX"/lib/{libva-x11.so.2,libva-x11.a}

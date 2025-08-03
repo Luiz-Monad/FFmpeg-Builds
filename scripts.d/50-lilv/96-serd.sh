@@ -4,7 +4,7 @@ SCRIPT_REPO="https://github.com/drobilla/serd.git"
 SCRIPT_COMMIT="24a6433ce9c0a7882803aa8fe32de861602b2ba0"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -19,13 +19,13 @@ ffbuild_dockerbuild() {
         -Dtests=disabled
     )
 
-    if [[ $TARGET == win* || $TARGET == linux* ]]; then
+    if [[ $TARGET == *-windows-* || $TARGET == *-linux-* ]]; then
         myconf+=(
             --cross-file=/cross.meson
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     meson "${myconf[@]}" ..

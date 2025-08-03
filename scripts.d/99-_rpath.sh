@@ -3,11 +3,11 @@
 SCRIPT_SKIP="1"
 
 ffbuild_enabled() {
-    [[ $TARGET == linux* ]]
+    [[ $TARGET == *-linux-* ]] && return $FFBUILD_TRUE
+    return $FFBUILD_FALSE
 }
-
 ffbuild_dockerfinal() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerdl() {
@@ -15,15 +15,15 @@ ffbuild_dockerdl() {
 }
 
 ffbuild_dockerlayer() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerstage() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_ldexeflags() {

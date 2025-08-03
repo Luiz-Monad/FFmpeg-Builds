@@ -4,7 +4,7 @@ SCRIPT_REPO="https://github.com/zeromq/libzmq.git"
 SCRIPT_COMMIT="3e5ce5c1cd75bd93b2ab51d98e0239eb8628b953"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -25,7 +25,7 @@ ffbuild_dockerbuild() {
         -DENABLE_NO_EXPORT=ON
     )
 
-    if [[ $TARGET == win* ]]; then
+    if [[ $TARGET == *-windows-* ]]; then
         myconf+=( -DPOLLER="epoll" )
     fi
 
@@ -35,7 +35,7 @@ ffbuild_dockerbuild() {
 
     {
         echo "Cflags.private: -DZMQ_NO_EXPORT -DZMQ_STATIC"
-        [[ $TARGET != win* ]] || echo "Libs.private: -lws2_32 -liphlpapi"
+        [[ $TARGET != *-windows-* ]] || echo "Libs.private: -lws2_32 -liphlpapi"
     } >> "$FFBUILD_PREFIX"/lib/pkgconfig/libzmq.pc
 }
 

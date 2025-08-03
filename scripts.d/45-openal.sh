@@ -4,8 +4,8 @@ SCRIPT_REPO="https://github.com/kcat/openal-soft.git"
 SCRIPT_COMMIT="b72944e4c36486fee75f1c654321fed82dfa20b5"
 
 ffbuild_enabled() {
-    (( $(ffbuild_ffver) > 501 )) || return -1
-    return 0
+    # (( $(ffbuild_ffver) <= 501 )) && return $FFBUILD_FALSE
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -18,7 +18,7 @@ ffbuild_dockerbuild() {
 
     echo "Libs.private: -lstdc++" >> "$FFBUILD_PREFIX"/lib/pkgconfig/openal.pc
 
-    if [[ $TARGET == win* ]]; then
+    if [[ $TARGET == *-windows-* ]]; then
         echo "Libs.private: -lole32 -luuid" >> "$FFBUILD_PREFIX"/lib/pkgconfig/openal.pc
     fi
 }

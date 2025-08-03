@@ -4,7 +4,7 @@ SCRIPT_REPO="https://github.com/sekrit-twc/zimg.git"
 SCRIPT_COMMIT="bde53c0acce09ade51367c9e3ead800aeaedb3f1"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerdl() {
@@ -22,13 +22,13 @@ ffbuild_dockerbuild() {
         --with-pic
     )
 
-    if [[ $TARGET == win* || $TARGET == linux* ]]; then
+    if [[ $TARGET == *-windows-* || $TARGET == *-linux-* ]]; then
         myconf+=(
             --host="$FFBUILD_TOOLCHAIN"
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     ./configure "${myconf[@]}"

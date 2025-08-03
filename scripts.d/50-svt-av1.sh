@@ -4,9 +4,10 @@ SCRIPT_REPO="https://gitlab.com/AOMediaCodec/SVT-AV1.git"
 SCRIPT_COMMIT="d37b1a571dc9af5d553f5fd3cbf8c536cdb21e98"
 
 ffbuild_enabled() {
-    [[ $TARGET == win32 ]] && return -1
-    (( $(ffbuild_ffver) > 700 )) || return -1
-    return 0
+    # (( $(ffbuild_ffver) <= 700 )) && return $FFBUILD_TRUE
+    # return $FFBUILD_FALSE
+    # LF: I enabled this
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerdl() {

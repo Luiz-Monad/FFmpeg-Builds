@@ -4,7 +4,7 @@ SCRIPT_REPO="https://github.com/xiph/vorbis.git"
 SCRIPT_COMMIT="84c023699cdf023a32fa4ded32019f194afcdad0"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -17,13 +17,13 @@ ffbuild_dockerbuild() {
         --disable-oggtest
     )
 
-    if [[ $TARGET == win* || $TARGET == linux* ]]; then
+    if [[ $TARGET == *-windows-* || $TARGET == *-linux-* ]]; then
         myconf+=(
             --host="$FFBUILD_TOOLCHAIN"
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     ./configure "${myconf[@]}"

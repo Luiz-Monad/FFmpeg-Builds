@@ -4,8 +4,8 @@ SCRIPT_REPO="https://gitlab.freedesktop.org/xorg/lib/libpciaccess.git"
 SCRIPT_COMMIT="d6a319c7de36b1afe7822640f8e3c0c533f75176"
 
 ffbuild_enabled() {
-    [[ $TARGET != linux* ]] && return -1
-    return 0
+    [[ $TARGET != *-linux-* ]] && return $FFBUILD_FALSE
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -18,13 +18,13 @@ ffbuild_dockerbuild() {
         -Dzlib=enabled
     )
 
-    if [[ $TARGET == linux* ]]; then
+    if [[ $TARGET == *-linux-* ]]; then
         myconf+=(
             --cross-file=/cross.meson
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     export CFLAGS="$RAW_CFLAGS"

@@ -4,8 +4,8 @@ SCRIPT_REPO="https://gitlab.freedesktop.org/mesa/drm.git"
 SCRIPT_COMMIT="e4bd1ba753641672fe4f108142b94fa2a1a7220c"
 
 ffbuild_enabled() {
-    [[ $TARGET != linux* ]] && return -1
-    return 0
+    [[ $TARGET != *-linux-* ]] && return $FFBUILD_FALSE
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -27,13 +27,13 @@ ffbuild_dockerbuild() {
         -Damdgpu=enabled
     )
 
-    if [[ $TARGET == linux* ]]; then
+    if [[ $TARGET == *-linux-* ]]; then
         myconf+=(
             --cross-file=/cross.meson
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     export CFLAGS="$RAW_CFLAGS"

@@ -4,7 +4,7 @@ SCRIPT_REPO="https://sourceware.org/git/bzip2.git"
 SCRIPT_COMMIT="6a8690fc8d26c815e798c588f796eabe9d684cf0"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {

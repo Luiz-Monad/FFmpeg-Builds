@@ -4,7 +4,7 @@ SCRIPT_REPO="https://github.com/lv2/sratom.git"
 SCRIPT_COMMIT="41f14e51def0a562d556a950d8cc36f15e480f7b"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -18,13 +18,13 @@ ffbuild_dockerbuild() {
         -Dtests=disabled
     )
 
-    if [[ $TARGET == win* || $TARGET == linux* ]]; then
+    if [[ $TARGET == *-windows-* || $TARGET == *-linux-* ]]; then
         myconf+=(
             --cross-file=/cross.meson
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     meson "${myconf[@]}" ..

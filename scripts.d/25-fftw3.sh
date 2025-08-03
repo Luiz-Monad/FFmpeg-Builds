@@ -4,7 +4,7 @@ SCRIPT_REPO="https://github.com/FFTW/fftw3.git"
 SCRIPT_COMMIT="816722732224231e90e634b5839bb7808cddc6cd"
 
 ffbuild_enabled() {
-    return 0
+    return $FFBUILD_TRUE
 }
 
 ffbuild_dockerbuild() {
@@ -21,7 +21,7 @@ ffbuild_dockerbuild() {
         --with-incoming-stack-boundary=2
     )
 
-    if [[ $TARGET != *arm64 ]]; then
+    if [[ $TARGET != aarch64-* ]]; then
         myconf+=(
             --enable-sse2
             --enable-avx
@@ -29,13 +29,13 @@ ffbuild_dockerbuild() {
         )
     fi
 
-    if [[ $TARGET == win* || $TARGET == linux* ]]; then
+    if [[ $TARGET == *-windows-* || $TARGET == *-linux-* ]]; then
         myconf+=(
             --host="$FFBUILD_TOOLCHAIN"
         )
     else
         echo "Unknown target"
-        return -1
+        return $FFBUILD_FALSE
     fi
 
     sed -i 's/windows.h/process.h/' configure.ac
