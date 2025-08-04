@@ -1,4 +1,5 @@
-ARG GH_REPO=ghcr.io/Luiz-Monad/FFmpeg-Builds
+ARG RUNNER=base
+ARG GH_REPO=ghcr.io/luiz-monad/ffmpeg-builds
 FROM $GH_REPO/runner-$RUNNER:latest
 
 RUN --mount=src=ct-ng-config,dst=/.config \

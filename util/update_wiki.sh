@@ -1,4 +1,4 @@
-#!/bin/bash
+w#!/bin/bash
 set -e
 
 if [[ $# != 2 ]]; then

@@ -36,8 +36,8 @@ FFBUILD_FALSE=-1
 REPO="${GITHUB_REPOSITORY:-Luiz-Monad/FFmpeg-Builds}"
 REPO="${REPO,,}"
 REGISTRY="${REGISTRY_OVERRIDE:-ghcr.io}"
-BASE_IMAGE="${REGISTRY}/${REPO}/base:latest"
-TARGET_IMAGE="${REGISTRY}/${REPO}/base-${TARGET}:latest"
+BASE_IMAGE="${REGISTRY}/${REPO}/runner-${RUNNER}:latest"
+TARGET_IMAGE="${REGISTRY}/${REPO}/target-${TARGET}:latest"
 IMAGE="${REGISTRY}/${REPO}/${TARGET}-${VARIANT}${ADDINS_STR:+-}${ADDINS_STR}:latest"
 
 ffbuild_ffver() {

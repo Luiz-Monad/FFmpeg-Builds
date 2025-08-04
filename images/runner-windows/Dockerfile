@@ -30,7 +30,7 @@ ENV CARGO_HOME="/opt/cargo" RUSTUP_HOME="/opt/rustup" PATH="/opt/cargo/bin:${PAT
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --no-modify-path && \
     cargo install cargo-c && rm -rf "${CARGO_HOME}"/registry "${CARGO_HOME}"/git
 
-COPY --from=runner-base /runner/ /input/
+COPY --from=ghcr.io/luiz-monad/ffmpeg-builds/runner-base /runner/ /input/
 RUN for s in /input/*.sh; do cp "$s" /usr/bin/$(basename "$s" .sh); done
 RUN rm -rf /input/
 

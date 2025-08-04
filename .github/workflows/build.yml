@@ -1,10 +1,6 @@
 name: Build FFmpeg
 
 on:
-  push:
-    paths-ignore:
-      - '**.md'
-      - 'LICENSE'
 
   workflow_call:
     inputs:
@@ -24,7 +20,7 @@ on:
         type: boolean
         required: true
 
-      buildFFmpegOnly:
+      buildFFmpeg:
         description: 'Only build ffmpeg'
         type: boolean
         required: true
@@ -36,6 +32,11 @@ on:
 
       runner:
         description: 'Job runner'
+        required: true
+        type: string
+
+      host:
+        description: 'Compiler host'
         required: true
         type: string
 
@@ -51,20 +52,40 @@ on:
 
 env:
   DOCKER_BUILDKIT: 1
+  RUNNER: ${{ inputs.runner }}
 
 jobs:
 
+  show_input_values:
+    name: Show input values
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - name: Display Input Values
+        run: |
+          echo "Build Base: ${{ inputs.buildBase }}"
+          echo "Build Target Base: ${{ inputs.buildTargetBase }}"
+          echo "Build Target Variant: ${{ inputs.buildTargetVariant }}"
+          echo "Build FFmpeg: ${{ inputs.buildFFmpeg }}"
+          echo "Publish Release: ${{ inputs.publishRelease }}"
+          echo "Runner: ${{ inputs.runner }}"
+          echo "Host: ${{ inputs.host }}"
+          echo "Target: ${{ inputs.target }}"
+          echo "Variant: ${{ inputs.variant }}"
+
   build_base:
-    name: Build base image ${{ inputs.target }}
-    if: ${{ inputs.buildBase == 'true' }}
+    name: Build runner base image
+    if: ${{ inputs.buildBase }}
+    needs: show_input_values
     runs-on: ${{ inputs.runner }}
     steps:
 
-      - name: Free Disk-Space
-        run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc && df -h
-
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Free Disk-Space
+        run: |
+          set -e
+          ./util/free_disk.sh
 
       - name: Install buildx
         uses: docker/setup-buildx-action@v3
@@ -81,32 +102,32 @@ jobs:
       - name: Image Name
         id: imagename
         run: |
-          IMG="${GITHUB_REPOSITORY,,}/runner-${{ inputs.runner }}"
+          IMG="${GITHUB_REPOSITORY,,}/runner-${{ inputs.host }}"
           echo "name=ghcr.io/${IMG/ /-}" >> $GITHUB_OUTPUT
           echo "rawname=${IMG/ /-}" >> $GITHUB_OUTPUT
 
       - name: Stop Commands
         run: T="$(echo -n ${{ github.token }} | sha256sum | head -c 64)" && echo -e "::add-mask::${T}\n::stop-commands::${T}"
 
-      - name: Build runner base image ${{ inputs.runner }}
+      - name: Build runner base image
         uses: docker/build-push-action@v6
         with:
-          context: images/runner-${{ inputs.runner }}
+          context: images/runner-${{ inputs.host }}
           pull: true
           push: true
           provenance: false
-          tags: ${{ steps.imagename.outputs.name }}:latest${{ (contains(matrix.runner, 'arm') && '-arm') || '' }}
-          cache-to: type=registry,mode=max,ref=${{ steps.imagename.outputs.name }}:cache${{ (contains(matrix.runner, 'arm') && '-arm') || '' }}
-          cache-from: type=registry,ref=${{ steps.imagename.outputs.name }}:cache${{ (contains(matrix.runner, 'arm') && '-arm') || '' }}
+          tags: ${{ steps.imagename.outputs.name }}:latest
+          cache-to: type=registry,mode=max,ref=${{ steps.imagename.outputs.name }}:cache
+          cache-from: type=registry,ref=${{ steps.imagename.outputs.name }}:cache
 
       - name: Get download cache key
-        if: ${{ !cancelled() && !contains(matrix.runner, 'arm') }}
         id: dl_cache
+        if: ${{ inputs.host != 'base' }}
         run: |
           echo "dltagname=$(./util/get_dl_cache_tag.sh)" >> $GITHUB_OUTPUT
 
       - name: Cache
-        if: ${{ !cancelled() && !contains(matrix.runner, 'arm') }}
+        if: ${{ inputs.host != 'base' }}
         uses: actions/cache@v4
         with:
           path: .cache/downloads
@@ -115,7 +136,7 @@ jobs:
             download-cache-
 
       - name: Update Cache
-        if: ${{ !cancelled() && !contains(matrix.runner, 'arm') }}
+        if: ${{ inputs.host != 'base' }}
         run: |
           set -e
           ./download.sh
@@ -123,7 +144,7 @@ jobs:
           tar czf .cache/cache.tar.gz .cache/downloads/*
 
       - name: Upload cache artifact
-        if: ${{ !cancelled() && !contains(matrix.runner, 'arm') }}
+        if: ${{ inputs.host != 'base' }}
         uses: actions/upload-artifact@v4
         with:
           name: download-cache
@@ -141,18 +162,20 @@ jobs:
           owner_type: user
           untagged_only: true
 
-  build_target_bases:
-    name: Build target base image ${{ inputs.target }}
-    if: ${{ inputs.buildTargetBase == 'true' }}
-    needs: build_base
-    runs-on: ${{ matrix.runner }}
+  build_target_base:
+    name: Build target base image
+    if: ${{ inputs.buildTargetBase }}
+    needs: show_input_values
+    runs-on: ${{ inputs.runner }}
     steps:
-
-      - name: Free Disk-Space
-        run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc && df -h
 
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Free Disk-Space
+        run: |
+          set -e
+          ./util/free_disk.sh
 
       - name: Install buildx
         uses: docker/setup-buildx-action@v3
@@ -169,7 +192,7 @@ jobs:
       - name: Image Name
         id: imagename
         run: |
-          IMG="${GITHUB_REPOSITORY,,}/base-${{ inputs.target }}"
+          IMG="${GITHUB_REPOSITORY,,}/target-${{ inputs.target }}"
           echo "name=ghcr.io/${IMG/ /-}" >> $GITHUB_OUTPUT
           echo "rawname=${IMG/ /-}" >> $GITHUB_OUTPUT
           echo "gh_repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
@@ -180,7 +203,7 @@ jobs:
       - name: Build target base image
         uses: docker/build-push-action@v6
         with:
-          context: images/base-${{ inputs.target }}
+          context: images/target-${{ inputs.target }}
           pull: true
           push: true
           provenance: false
@@ -188,6 +211,7 @@ jobs:
           cache-to: type=registry,mode=max,ref=${{ steps.imagename.outputs.name }}:cache
           cache-from: type=registry,ref=${{ steps.imagename.outputs.name }}:cache
           build-args: |
+            RUNNER=${{ inputs.runner }}
             GH_REPO=ghcr.io/${{ steps.imagename.outputs.gh_repo }}
 
       - name: Cleanup
@@ -201,18 +225,20 @@ jobs:
           owner_type: user
           untagged_only: true
 
-  build_targets:
-    name: Build target-variant image ${{ inputs.target }}
-    if: ${{ !cancelled() && inputs.buildTargetVariant == 'true' }}
-    needs: build_target_bases
+  build_target_variant:
+    name: Build target variant image
+    if: ${{ inputs.buildTargetVariant }}
+    needs: show_input_values
     runs-on: ${{ inputs.runner }}
     steps:
 
-      - name: Free Disk-Space
-        run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc && df -h
-
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Free Disk-Space
+        run: |
+          set -e
+          ./util/free_disk.sh
 
       - name: Install buildx
         uses: docker/setup-buildx-action@v3
@@ -232,6 +258,7 @@ jobs:
           IMG="${GITHUB_REPOSITORY,,}/${{ inputs.target }}-${{ inputs.variant }}"
           echo "name=ghcr.io/${IMG/ /-}" >> $GITHUB_OUTPUT
           echo "rawname=${IMG/ /-}" >> $GITHUB_OUTPUT
+          echo "gh_repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
 
       - name: Get download cache key
         id: dl_cache
@@ -240,8 +267,10 @@ jobs:
 
       - name: Stop Commands
         run: T="$(echo -n ${{ github.token }} | sha256sum | head -c 64)" && echo -e "::add-mask::${T}\n::stop-commands::${T}"
+
       - name: Generate Dockerfile
         run: ./generate.sh ${{ inputs.target }} ${{ inputs.variant }}
+
       - name: Cache
         uses: actions/cache/restore@v4
         with:
@@ -249,7 +278,7 @@ jobs:
           key: download-cache-${{ steps.dl_cache.outputs.dltagname }}
           fail-on-cache-miss: true
 
-      - name: Build target base image
+      - name: Build target variant image
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -272,16 +301,19 @@ jobs:
           untagged_only: true
 
   build_ffmpeg:
-    name: Build ffmpeg ${{ inputs.target }}
-    if: ${{ ( !cancelled() && inputs.buildFFmpegOnly == 'true' ) || success() }}
-    needs: build_targets
+    name: Build ffmpeg
+    if: ${{ inputs.buildFFmpeg }}
+    needs: show_input_values
     runs-on: ${{ inputs.runner }}
     steps:
-      - name: Free Disk-Space
-        run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc && df -h
 
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Free Disk-Space
+        run: |
+          set -e
+          ./util/free_disk.sh
 
       - name: Login to Docker
         uses: docker/login-action@v3
@@ -298,7 +330,7 @@ jobs:
       - name: Replace spaces in string
         id: strs
         run: |
-          SLUG="${{ matrix.target }}-${{ matrix.variant }}"
+          SLUG="${{ inputs.target }}-${{ inputs.variant }}"
           echo "artifact_slug=${SLUG// /-}" >> $GITHUB_OUTPUT
 
       - name: Upload artifacts
@@ -310,15 +342,18 @@ jobs:
 
   publish_release:
     name: Publish release
-    if: ${{ !cancelled() && inputs.publishRelease == 'true' && needs.build_ffmpeg.result == 'success' }}
+    if: ${{ !cancelled() && inputs.publishRelease && needs.build_ffmpeg.result == 'success' }}
     needs: build_ffmpeg
     runs-on: ${{ inputs.runner }}
     steps:
-      - name: Free Disk-Space
-        run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc && df -h
 
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Free Disk-Space
+        run: |
+          set -e
+          ./util/free_disk.sh
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
