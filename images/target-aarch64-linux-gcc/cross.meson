@@ -1,6 +1,6 @@
 [binaries]
-c = ['clang', '--target=aarch64-linux-gnu']
-cpp = ['clang++', '--target=aarch64-linux-gnu']
+c = 'aarch64-linux-gnu-gcc'
+cpp = 'aarch64-linux-gnu-g++'
 ld = 'aarch64-linux-gnu-ld'
 ar = 'aarch64-linux-gnu-ar'
 ranlib = 'aarch64-linux-gnu-ranlib'

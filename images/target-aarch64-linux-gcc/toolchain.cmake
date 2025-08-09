@@ -4,12 +4,8 @@ set(CMAKE_SYSTEM_VERSION 4.18.20)
 
 set(triple aarch64-linux-gnu)
 
-set(CMAKE_C_COMPILER clang)
-set(CMAKE_C_COMPILER_TARGET ${triple})
-
-set(CMAKE_CXX_COMPILER clang++)
-set(CMAKE_CXX_COMPILER_TARGET ${triple})
-
+set(CMAKE_C_COMPILER ${triple}-gcc)
+set(CMAKE_CXX_COMPILER ${triple}-g++)
 set(CMAKE_RANLIB ${triple}-ranlib)
 set(CMAKE_AR ${triple}-ar)
 

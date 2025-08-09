@@ -1,6 +1,6 @@
 [binaries]
-c = ['clang', '--target=x86_64-linux-gnu']
-cpp = ['clang++', '--target=x86_64-linux-gnu']
+c = 'x86_64-linux-gnu-gcc'
+cpp = 'x86_64-linux-gnu-g++'
 ld = 'x86_64-linux-gnu-ld'
 ar = 'x86_64-linux-gnu-ar'
 ranlib = 'x86_64-linux-gnu-ranlib'
@@ -8,6 +8,6 @@ strip = 'x86_64-linux-gnu-strip'
 
 [host_machine]
 system = 'linux'
-cpu_family = 'aarch64'
-cpu = 'armv8-a'
+cpu_family = 'x86_64'
+cpu = 'x86_64'
 endian = 'little'

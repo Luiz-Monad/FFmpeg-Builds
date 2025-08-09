@@ -3,21 +3,20 @@ ARG GH_REPO=ghcr.io/luiz-monad/ffmpeg-builds
 FROM $GH_REPO/runner-$RUNNER:latest
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    clang lld \
-    binutils-x86_64-linux-gnu gcc-x86_64-linux-gnu \
+    gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf \
     pkg-config qemu-user-static && \
     rm -rf /var/lib/apt/lists/*
 
-ENV FFBUILD_TOOLCHAIN=x86_64-linux-gnu \
-    FFBUILD_RUST_TARGET="x86_64-unknown-linux-gnu" \
-    FFBUILD_ARCH_FLAGS="-march=x86-64 -mtune=generic -fPIC -DPIC" \
-    FFBUILD_CONFIGURE_FLAGS="--arch=x86_64 --target-os=linux"
+ENV FFBUILD_TOOLCHAIN=arm-linux-gnueabihf \
+    FFBUILD_RUST_TARGET=armv7-unknown-linux-gnueabihf \
+    FFBUILD_ARCH_FLAGS="-march=armv7-a -mfpu=neon-vfpv4 -mfloat-abi=hard -mtune=cortex-a15 -fPIC -DPIC" \
+    FFBUILD_CONFIGURE_FLAGS="--arch=arm --cpu=cortex-a15 --target-os=linux --enable-thumb"
 
 RUN \
     rustup target add "$FFBUILD_RUST_TARGET" && \
     mkdir -p "$CARGO_HOME" && \
     echo "[target.$FFBUILD_RUST_TARGET]" >> "$CARGO_HOME"/config.toml && \
-    echo "linker = \"clang --target=${FFBUILD_TOOLCHAIN}\"" >> "$CARGO_HOME"/config.toml && \
+    echo "linker = \"${FFBUILD_TOOLCHAIN}-gcc\"" >> "$CARGO_HOME"/config.toml && \
     echo "ar = \"${FFBUILD_TOOLCHAIN}-gcc-ar\"" >> "$CARGO_HOME"/config.toml && \
     echo "" >> "$CARGO_HOME"/config.toml
 
@@ -35,8 +34,8 @@ ENV PATH="/usr/bin:${PATH}" \
     PKG_CONFIG=pkg-config \
     PKG_CONFIG_LIBDIR=/opt/ffbuild/lib/pkgconfig:/opt/ffbuild/share/pkgconfig \
     COMPILER_SYSROOT=/usr/$FFBUILD_TOOLCHAIN \
-    CC="clang --target=${FFBUILD_TOOLCHAIN}" \
-    CXX="clang++ --target=${FFBUILD_TOOLCHAIN}" \
+    CC="${FFBUILD_TOOLCHAIN}-gcc" \
+    CXX="${FFBUILD_TOOLCHAIN}-g++" \
     LD="${FFBUILD_TOOLCHAIN}-ld" \
     AR="${FFBUILD_TOOLCHAIN}-ar" \
     RANLIB="${FFBUILD_TOOLCHAIN}-ranlib" \

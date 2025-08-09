@@ -2,44 +2,24 @@ ARG RUNNER=base
 ARG GH_REPO=ghcr.io/luiz-monad/ffmpeg-builds
 FROM $GH_REPO/runner-$RUNNER:latest
 
-RUN --mount=src=ct-ng-config,dst=/.config \
-    git clone --filter=blob:none https://github.com/crosstool-ng/crosstool-ng.git /ct-ng && cd /ct-ng && \
-    ./bootstrap && \
-    ./configure --enable-local && \
-    make -j$(nproc) && \
-    cp /.config .config && \
-    ./ct-ng build && \
-    cd / && \
-    rm -rf ct-ng
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    clang lld \
+    binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu \
+    pkg-config qemu-user-static && \
+    rm -rf /var/lib/apt/lists/*
 
-# Prepare cross environment to heavily favour static builds
-RUN \
-    find /opt/ct-ng -type l \
-        -and -name '*.so' \
-        -and -not -ipath '*plugin*' \
-        -and -not -name 'libdl.*' \
-        -and -not -name 'libc.*' \
-        -and -not -name 'libm.*' \
-        -and -not -name 'libmvec.*' \
-        -and -not -name 'librt.*' \
-        -and -not -name 'libpthread.*' \
-        -delete && \
-    find /opt/ct-ng \
-        -name 'libdl.a' \
-        -or -name 'libc.a' \
-        -or -name 'libm.a' \
-        -or -name 'libmvec.a' \
-        -or -name 'librt.a' \
-        -or -name 'libpthread.a' \
-        -delete && \
-    mkdir /opt/ffbuild
-
-ENV FFBUILD_TOOLCHAIN=aarch64-ffbuild-linux-gnu \
-    FFBUILD_RUST_TARGET="aarch64-unknown-linux-gnu"
+ENV FFBUILD_TOOLCHAIN=aarch64-linux-gnu \
+    FFBUILD_RUST_TARGET="aarch64-unknown-linux-gnu" \
+    FFBUILD_ARCH_FLAGS="-march=armv8-a -mtune=cortex-a72 -fPIC -DPIC" \
+    FFBUILD_CONFIGURE_FLAGS="--arch=aarch64 --cpu=armv8-a --target-os=linux"
 
 RUN \
     rustup target add "$FFBUILD_RUST_TARGET" && \
-    echo "[target.$FFBUILD_RUST_TARGET]\nlinker = \"${FFBUILD_TOOLCHAIN}-gcc\"\nar = \"${FFBUILD_TOOLCHAIN}-gcc-ar\"\n" > "$CARGO_HOME"/config.toml
+    mkdir -p "$CARGO_HOME" && \
+    echo "[target.$FFBUILD_RUST_TARGET]" >> "$CARGO_HOME"/config.toml && \
+    echo "linker = \"clang --target=${FFBUILD_TOOLCHAIN}\"" >> "$CARGO_HOME"/config.toml && \
+    echo "ar = \"${FFBUILD_TOOLCHAIN}-gcc-ar\"" >> "$CARGO_HOME"/config.toml && \
+    echo "" >> "$CARGO_HOME"/config.toml
 
 ADD toolchain.cmake /toolchain.cmake
 ADD cross.meson /cross.meson
@@ -47,21 +27,24 @@ ADD cross.meson /cross.meson
 ADD gen-implib.sh /usr/bin/gen-implib
 RUN git clone --filter=blob:none --depth=1 https://github.com/yugr/Implib.so /opt/implib
 
-ENV PATH="/opt/ct-ng/bin:${PATH}" \
-    FFBUILD_TARGET_FLAGS="--pkg-config=pkg-config --cross-prefix=${FFBUILD_TOOLCHAIN}- --arch=aarch64 --cpu=armv8-a --target-os=linux" \
+ENV PATH="/usr/bin:${PATH}" \
+    FFBUILD_TARGET_FLAGS="--pkg-config=pkg-config --cross-prefix=${FFBUILD_TOOLCHAIN}- ${FFBUILD_CONFIGURE_FLAGS}" \
     FFBUILD_CROSS_PREFIX="${FFBUILD_TOOLCHAIN}-" \
     FFBUILD_PREFIX=/opt/ffbuild \
     FFBUILD_CMAKE_TOOLCHAIN=/toolchain.cmake \
     PKG_CONFIG=pkg-config \
     PKG_CONFIG_LIBDIR=/opt/ffbuild/lib/pkgconfig:/opt/ffbuild/share/pkgconfig \
-    CC="${FFBUILD_TOOLCHAIN}-gcc" \
-    CXX="${FFBUILD_TOOLCHAIN}-g++" \
+    COMPILER_SYSROOT=/usr/$FFBUILD_TOOLCHAIN \
+    CC="clang --target=${FFBUILD_TOOLCHAIN}" \
+    CXX="clang++ --target=${FFBUILD_TOOLCHAIN}" \
     LD="${FFBUILD_TOOLCHAIN}-ld" \
-    AR="${FFBUILD_TOOLCHAIN}-gcc-ar" \
-    RANLIB="${FFBUILD_TOOLCHAIN}-gcc-ranlib" \
-    NM="${FFBUILD_TOOLCHAIN}-gcc-nm" \
-    CFLAGS="-static-libgcc -static-libstdc++ -I/opt/ffbuild/include -O2 -pipe -march=armv8-a -fPIC -DPIC -D_FORTIFY_SOURCE=2 -fstack-protector-strong -fstack-clash-protection -pthread" \
-    CXXFLAGS="-static-libgcc -static-libstdc++ -I/opt/ffbuild/include -O2 -pipe -march=armv8-a -fPIC -DPIC -D_FORTIFY_SOURCE=2 -fstack-protector-strong -fstack-clash-protection -pthread" \
-    LDFLAGS="-static-libgcc -static-libstdc++ -L/opt/ffbuild/lib -O2 -pipe -march=armv8-a -fstack-protector-strong -fstack-clash-protection -Wl,-z,relro,-z,now -pthread -lm" \
-    STAGE_CFLAGS="-fvisibility=hidden -fno-semantic-interposition" \
-    STAGE_CXXFLAGS="-fvisibility=hidden -fno-semantic-interposition"
+    AR="${FFBUILD_TOOLCHAIN}-ar" \
+    RANLIB="${FFBUILD_TOOLCHAIN}-ranlib" \
+    NM="${FFBUILD_TOOLCHAIN}-nm" \
+    STRIP="${FFBUILD_TOOLCHAIN}-strip" \
+    CFLAGS="-I/opt/ffbuild/include -O2 -pipe $FFBUILD_ARCH_FLAGS -D_FORTIFY_SOURCE=2 -fstack-protector-strong" \
+    CXXFLAGS="-I/opt/ffbuild/include -O2 -pipe $FFBUILD_ARCH_FLAGS -D_FORTIFY_SOURCE=2 -fstack-protector-strong" \
+    LDFLAGS="-static -static-libgcc -static-libstdc++ -L/opt/ffbuild/lib -O2 -pipe -fstack-protector-strong -Wl,--gc-sections -Wl,--strip-all" \
+    CPPFLAGS="-I/opt/ffbuild/include" \
+    STAGE_CFLAGS="" \
+    STAGE_CXXFLAGS=""

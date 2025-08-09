@@ -4,14 +4,14 @@ FROM $GH_REPO/runner-$RUNNER:latest
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     clang lld \
-    binutils-x86_64-linux-gnu gcc-x86_64-linux-gnu \
+    binutils-arm-linux-gnueabihf gcc-arm-linux-gnueabihf \
     pkg-config qemu-user-static && \
     rm -rf /var/lib/apt/lists/*
 
-ENV FFBUILD_TOOLCHAIN=x86_64-linux-gnu \
-    FFBUILD_RUST_TARGET="x86_64-unknown-linux-gnu" \
-    FFBUILD_ARCH_FLAGS="-march=x86-64 -mtune=generic -fPIC -DPIC" \
-    FFBUILD_CONFIGURE_FLAGS="--arch=x86_64 --target-os=linux"
+ENV FFBUILD_TOOLCHAIN=arm-linux-gnueabihf \
+    FFBUILD_RUST_TARGET="armv7-unknown-linux-gnueabihf" \
+    FFBUILD_ARCH_FLAGS="-march=armv7-a -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard -mfpu=vfpv3-d16 -fPIC -DPIC" \
+    FFBUILD_CONFIGURE_FLAGS="--arch=arm --cpu=cortex-a9 --target-os=linux"
 
 RUN \
     rustup target add "$FFBUILD_RUST_TARGET" && \

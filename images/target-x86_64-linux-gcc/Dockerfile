@@ -3,8 +3,7 @@ ARG GH_REPO=ghcr.io/luiz-monad/ffmpeg-builds
 FROM $GH_REPO/runner-$RUNNER:latest
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    clang lld \
-    binutils-x86_64-linux-gnu gcc-x86_64-linux-gnu \
+    gcc-x86_64-linux-gnu g++-x86_64-linux-gnu binutils-x86_64-linux-gnu \
     pkg-config qemu-user-static && \
     rm -rf /var/lib/apt/lists/*
 
@@ -17,7 +16,7 @@ RUN \
     rustup target add "$FFBUILD_RUST_TARGET" && \
     mkdir -p "$CARGO_HOME" && \
     echo "[target.$FFBUILD_RUST_TARGET]" >> "$CARGO_HOME"/config.toml && \
-    echo "linker = \"clang --target=${FFBUILD_TOOLCHAIN}\"" >> "$CARGO_HOME"/config.toml && \
+    echo "linker = \"${FFBUILD_TOOLCHAIN}-gcc\"" >> "$CARGO_HOME"/config.toml && \
     echo "ar = \"${FFBUILD_TOOLCHAIN}-gcc-ar\"" >> "$CARGO_HOME"/config.toml && \
     echo "" >> "$CARGO_HOME"/config.toml
 
@@ -35,8 +34,8 @@ ENV PATH="/usr/bin:${PATH}" \
     PKG_CONFIG=pkg-config \
     PKG_CONFIG_LIBDIR=/opt/ffbuild/lib/pkgconfig:/opt/ffbuild/share/pkgconfig \
     COMPILER_SYSROOT=/usr/$FFBUILD_TOOLCHAIN \
-    CC="clang --target=${FFBUILD_TOOLCHAIN}" \
-    CXX="clang++ --target=${FFBUILD_TOOLCHAIN}" \
+    CC="${FFBUILD_TOOLCHAIN}-gcc" \
+    CXX="${FFBUILD_TOOLCHAIN}-g++" \
     LD="${FFBUILD_TOOLCHAIN}-ld" \
     AR="${FFBUILD_TOOLCHAIN}-ar" \
     RANLIB="${FFBUILD_TOOLCHAIN}-ranlib" \

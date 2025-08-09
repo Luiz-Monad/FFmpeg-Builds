@@ -1,0 +1,13 @@
+[binaries]
+c = ['clang', '--target=arm-linux-gnueabihf']
+cpp = ['clang++', '--target=arm-linux-gnueabihf']
+ld = 'arm-linux-gnueabihf-ld'
+ar = 'arm-linux-gnueabihf-ar'
+ranlib = 'arm-linux-gnueabihf-ranlib'
+strip = 'arm-linux-gnueabihf-strip'
+
+[host_machine]
+system = 'linux'
+cpu_family = 'arm'
+cpu = 'cortex-a9'
+endian = 'little'
