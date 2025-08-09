@@ -21,10 +21,10 @@ RUN \
         -delete && \
     mkdir /opt/ffbuild
 
-ENV FFBUILD_TOOLCHAIN="aarch64-w64-mingw32" \
-    FFBUILD_RUST_TARGET="aarch64-pc-windows-gnullvm" \
-    FFBUILD_ARCH_FLAGS="-march=armv8-a -mtune=cortex-a72" \
-    FFBUILD_CONFIGURE_FLAGS="--arch=aarch64 --cpu=armv8-a --target-os=mingw32"
+ENV FFBUILD_TOOLCHAIN="i686-w64-mingw32" \
+    FFBUILD_RUST_TARGET="i686-pc-windows-gnullvm" \
+    FFBUILD_ARCH_FLAGS="-march=x86-64 -mtune=generic" \
+    FFBUILD_CONFIGURE_FLAGS="--arch=i686 --target-os=mingw32"
 
 RUN \
     rustup target add "$FFBUILD_RUST_TARGET" && \

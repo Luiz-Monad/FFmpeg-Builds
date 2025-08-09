@@ -1,0 +1,18 @@
+[binaries]
+c = 'armv7-w64-mingw32-clang'
+cpp = 'armv7-w64-mingw32-clang++'
+ar = 'armv7-w64-mingw32-llvm-ar'
+ranlib = 'armv7-w64-mingw32-llvm-ranlib'
+strip = 'armv7-w64-mingw32-strip'
+windres = 'armv7-w64-mingw32-windres'
+dlltool = 'armv7-w64-mingw32-dlltool'
+exe_wrapper = ['wine']
+
+[properties]
+needs_exe_wrapper = true
+
+[host_machine]
+system = 'windows'
+cpu_family = 'arm'
+cpu = 'cortex-a9'
+endian = 'little'

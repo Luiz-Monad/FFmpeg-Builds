@@ -1,8 +1,8 @@
 set(CMAKE_SYSTEM_NAME Windows)
-set(CMAKE_SYSTEM_PROCESSOR x86_64)
+set(CMAKE_SYSTEM_PROCESSOR arm)
 set(CMAKE_SYSTEM_VERSION 10.0.22621.2428)
 
-set(triple x86_64-w64-mingw32)
+set(triple armv7-w64-mingw32)
 
 set(CMAKE_C_COMPILER ${triple}-clang)
 set(CMAKE_CXX_COMPILER ${triple}-clang++)

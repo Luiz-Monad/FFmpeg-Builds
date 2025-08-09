@@ -14,5 +14,5 @@ needs_exe_wrapper = true
 [host_machine]
 system = 'windows'
 cpu_family = 'aarch64'
-cpu = 'aarch64'
+cpu = 'armv8-a'
 endian = 'little'
