@@ -5,9 +5,10 @@ if [[ $# -lt 2 ]]; then
     exit -1
 fi
 
-TARGET="$1"
-VARIANT="$2"
-shift 2
+RUNNER="$1"
+TARGET="$2"
+VARIANT="$3"
+shift 3
 
 if ! [[ -f "variants/${TARGET}-${VARIANT}.sh" ]]; then
     echo "Invalid target/variant"

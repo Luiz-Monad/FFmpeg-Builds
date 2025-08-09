@@ -1,7 +1,7 @@
 #!/bin/bash
 set -xe
 cd "$(dirname "$0")"
-source util/vars.sh dl only
+source util/vars.sh linux dl only
 
 if docker info -f "{{println .SecurityOptions}}" | grep rootless >/dev/null 2>&1; then
     UIDARGS=()

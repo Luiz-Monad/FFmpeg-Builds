@@ -19,30 +19,57 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [win64,linux64,linuxarm64]
-        variant: [lgpl,gpl 6.1,gpl 5.1,lgpl 6.1,lgpl 5.1,gpl-shared,lgpl-shared,gpl-shared 6.1,gpl-shared 5.1,lgpl-shared 6.1,lgpl-shared 5.1]
+        combo:
+          - { host: macos, target: aarch64-ios-clang }
+          - { host: macos, target: aarch64-ios-xcode }
+          - { host: macos, target: aarch64-macos-clang }
+          - { host: macos, target: aarch64-macos-xcode }
+          - { host: macos, target: x86_64-macos-clang }
+          - { host: macos, target: x86_64-macos-xcode }
+          - { host: linux, target: aarch64-android-clang }
+          - { host: linux, target: aarch64-ios-cross-clang }
+          - { host: linux, target: aarch64-linux-clang }
+          - { host: linux, target: aarch64-linux-gcc }
+          - { host: linux, target: aarch64-macos-cross-clang }
+          - { host: linux, target: aarch64-windows-cross-clang }
+          - { host: linux, target: armv7-android-clang }
+          - { host: linux, target: armv7-linux-clang }
+          - { host: linux, target: armv7-linux-gcc }
+          - { host: linux, target: x86_64-android-clang }
+          - { host: linux, target: x86_64-linux-clang }
+          - { host: linux, target: x86_64-linux-gcc }
+          - { host: linux, target: x86_64-macos-cross-clang }
+          - { host: linux, target: x86_64-windows-cross-clang }
+          - { host: windows, target: aarch64-windows-clang }
+          - { host: windows, target: aarch64-windows-msvc }
+          - { host: windows, target: x86_64-windows-clang }
+          - { host: windows, target: x86_64-windows-msvc }
+        variant:
+          - gpl 7.1.1
+          - lgpl 7.1.1
+          - shared 7.1.1
+          - static 7.1.1
         quickbuild: [1]
         include:
-
-          - target: win64
-            variant: gpl
+          - combo: { host: linux, target: aarch64-macos-cross-clang }
+            variant: gpl 7.1.1
             quickbuild: ''
-
-          - target: linux64
-            variant: gpl
+          - combo: { host: linux, target: aarch64-linux-clang }
+            variant: gpl 7.1.1
             quickbuild: ''
-
-          - target: linuxarm64
-            variant: gpl
+          - combo: { host: linux, target: x86_64-windows-cross-clang }
+            variant: gpl 7.1.1
             quickbuild: ''
 
     steps:
 
-      - name: Free Disk-Space
-        run: df -h && sudo apt-get clean && docker system prune -a -f && sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc && df -h
-
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Free Disk-Space
+        run: |
+          set -e
+          ./util/free_disk.sh
 
       - name: Install buildx
         uses: docker/setup-buildx-action@v3
@@ -64,12 +91,12 @@ jobs:
             download-cache-
 
       - name: Build Image
-        run: ./makeimage.sh ${{ matrix.target }} ${{ matrix.variant }}
+        run: ./makeimage.sh ${{ matrix.runner }} ${{ matrix.target }} ${{ matrix.variant }}
         env:
           QUICKBUILD: ${{ matrix.quickbuild }}
 
       - name: Build ffmpeg
-        run: ./build.sh ${{ matrix.target }} ${{ matrix.variant }}
+        run: ./build.sh ${{ matrix.runner }} ${{ matrix.target }} ${{ matrix.variant }}
       - name: Replace spaces in string
         id: strs
         run: |
