@@ -3,7 +3,7 @@ ARG GH_REPO=ghcr.io/luiz-monad/ffmpeg-builds
 FROM $GH_REPO/runner-$RUNNER:latest
 
 # Install llvm-mingw
-RUN /runner/install-llvm-mingw.sh
+RUN install-llvm-mingw
 
 # LLVM/Clang workarounds for Windows headers
 RUN \
@@ -23,7 +23,7 @@ RUN \
 
 ENV FFBUILD_TOOLCHAIN="x86_64-w64-mingw32" \
     FFBUILD_RUST_TARGET="x86_64-pc-windows-gnullvm" \
-    FFBUILD_ARCH_FLAGS="-march=x86-64 -mtune=generic" \
+    FFBUILD_ARCH_FLAGS="-march=x86-64 -mtune=generic -fPIC -DPIC" \
     FFBUILD_CONFIGURE_FLAGS="--arch=x86_64 --cpu=x86-64 --target-os=mingw32"
 
 RUN \
@@ -58,7 +58,7 @@ ENV PATH="/opt/llvm-mingw/bin:${PATH}" \
     WINDRES="${FFBUILD_TOOLCHAIN}-windres" \
     CFLAGS="-I/opt/ffbuild/include -O2 -pipe $FFBUILD_ARCH_FLAGS -D_FORTIFY_SOURCE=2 -fstack-protector-strong" \
     CXXFLAGS="-I/opt/ffbuild/include -O2 -pipe $FFBUILD_ARCH_FLAGS -D_FORTIFY_SOURCE=2 -fstack-protector-strong" \
-    LDFLAGS="-static -L/opt/ffbuild/lib -O2 -pipe -fstack-protector-strong -Wl,--gc-sections -Wl,--strip-all" \
+    LDFLAGS="-static -static-libstdc++ -L/opt/ffbuild/lib -O2 -pipe -fstack-protector-strong -Wl,--gc-sections -Wl,--strip-all" \
     CPPFLAGS="-I/opt/ffbuild/include" \
     STAGE_CFLAGS="" \
     STAGE_CXXFLAGS=""
