@@ -2,7 +2,7 @@ ARG RUNNER=base
 ARG GH_REPO=ghcr.io/luiz-monad/ffmpeg-builds
 FROM $GH_REPO/runner-$RUNNER:latest
 
-ENV TARGET=target-aarch64-windows-cross-clang
+ENV TARGET=target-armv7-windows-cross-clang
 RUN install-llvm-mingw
 
 # LLVM/Clang workarounds for Windows headers
@@ -21,16 +21,16 @@ RUN \
         -delete && \
     mkdir /opt/ffbuild
 
-ENV FFBUILD_TOOLCHAIN="aarch64-w64-mingw32" \
-    FFBUILD_RUST_TARGET="aarch64-pc-windows-gnullvm" \
-    FFBUILD_ARCH_FLAGS="-march=armv8-a -mtune=cortex-a72 -fPIC -DPIC" \
-    FFBUILD_CONFIGURE_FLAGS="--arch=aarch64 --cpu=armv8-a --target-os=mingw32" \
+ENV FFBUILD_TOOLCHAIN="armv7-w64-mingw32" \
+    FFBUILD_RUST_TARGET="thumbv7a-pc-windows-gnullvm" \
+    FFBUILD_ARCH_FLAGS="-march=armv7-a -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard -mfpu=vfpv3-d16 -fPIC -DPIC" \
+    FFBUILD_CONFIGURE_FLAGS="--arch=arm --cpu=cortex-a9 --target-os=mingw32" \
     FFBUILD_SYSTEM="windows" \
     FFBUILD_SYSTEM_NAME="Windows" \
     FFBUILD_VERSION="10.0.22621.2428" \
     FFBUILD_CPU_ENDIAN="little" \
-    FFBUILD_CPU_FAMILY="aarch64" \
-    FFBUILD_CPU="armv8-a"
+    FFBUILD_CPU_FAMILY="arm" \
+    FFBUILD_CPU="cortex-a9"
 
 ENV PATH="/opt/llvm-mingw/bin:${PATH}" \
     FFBUILD_TARGET_FLAGS="--pkg-config=pkg-config --cross-prefix=${FFBUILD_TOOLCHAIN}- ${FFBUILD_CONFIGURE_FLAGS}" \

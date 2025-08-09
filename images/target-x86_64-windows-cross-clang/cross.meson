@@ -1,18 +1,24 @@
 [binaries]
-c = 'x86_64-w64-mingw32-gcc'
-cpp = 'x86_64-w64-mingw32-g++'
-ar = 'x86_64-w64-mingw32-gcc-ar'
-ranlib = 'x86_64-w64-mingw32-gcc-ranlib'
-strip = 'x86_64-w64-mingw32-strip'
-windres = 'x86_64-w64-mingw32-windres'
-dlltool = 'x86_64-w64-mingw32-dlltool'
+c = '${CC}'
+cpp = '${CXX}'
+ld = '${LD}'
+ar = '${AR}'
+ranlib = '${RANLIB}'
+strip = '${STRIP}'
+pkg-config = '${PKG_CONFIG}'
+windres = '${WINDRES}'
+dlltool = '${DLLTOOL}'
 exe_wrapper = ['wine']
 
 [properties]
 needs_exe_wrapper = true
 
 [host_machine]
-system = 'windows'
-cpu_family = 'x86_64'
-cpu = 'x86_64'
-endian = 'little'
+system = '${FFBUILD_SYSTEM}'
+cpu_family = '${FFBUILD_CPU_FAMILY}'
+cpu = '${FFBUILD_CPU}'
+endian = '${FFBUILD_CPU_ENDIAN}'
+
+[properties]
+root = '${COMPILER_ROOT}'
+sys_root = '${COMPILER_SYSROOT}'
