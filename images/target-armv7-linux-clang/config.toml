@@ -1,0 +1,3 @@
+[target.${FFBUILD_RUST_TARGET}]
+linker = "${CC}"
+ar = "${AR}"

@@ -3,22 +3,22 @@ ARG GH_REPO=ghcr.io/luiz-monad/ffmpeg-builds
 FROM $GH_REPO/runner-$RUNNER:latest
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    clang lld \
-    binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu \
+    g++-x86-64-linux-gnu \
+    binutils-x86-64-linux-gnu binutils-x86-64-gnu \
     pkg-config qemu-user-static && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
 
-ENV FFBUILD_TOOLCHAIN="aarch64-linux-gnu" \
-    FFBUILD_RUST_TARGET="aarch64-unknown-linux-gnu" \
-    FFBUILD_ARCH_FLAGS="-march=armv8-a -mtune=cortex-a72 -fPIC -DPIC" \
-    FFBUILD_CONFIGURE_FLAGS="--arch=aarch64 --cpu=armv8-a --target-os=linux" \
+ENV FFBUILD_TOOLCHAIN="x86_64-linux-gnu" \
+    FFBUILD_RUST_TARGET="x86_64-unknown-linux-gnu" \
+    FFBUILD_ARCH_FLAGS="-march=x86-64 -mtune=generic -fPIC -DPIC" \
+    FFBUILD_CONFIGURE_FLAGS="--arch=x86_64 --target-os=linux" \
     FFBUILD_SYSTEM="linux" \
     FFBUILD_SYSTEM_NAME="Linux" \
     FFBUILD_VERSION="4.18.20" \
     FFBUILD_CPU_ENDIAN="little" \
-    FFBUILD_CPU_FAMILY="aarch64" \
-    FFBUILD_CPU="armv8-a"
+    FFBUILD_CPU_FAMILY="x86_64" \
+    FFBUILD_CPU="x86_64"
 
 ENV PATH="/usr/${FFBUILD_TOOLCHAIN}/bin:${PATH}" \
     FFBUILD_TARGET_FLAGS="--pkg-config=pkg-config --cross-prefix=${FFBUILD_TOOLCHAIN}- ${FFBUILD_CONFIGURE_FLAGS}" \
@@ -29,8 +29,8 @@ ENV PATH="/usr/${FFBUILD_TOOLCHAIN}/bin:${PATH}" \
     PKG_CONFIG_LIBDIR="/opt/ffbuild/lib/pkgconfig:/opt/ffbuild/share/pkgconfig" \
     COMPILER_ROOT="/usr/${FFBUILD_TOOLCHAIN}" \
     COMPILER_SYSROOT="/usr/${FFBUILD_TOOLCHAIN}/sysroot" \
-    CC="clang --target=${FFBUILD_TOOLCHAIN}" \
-    CXX="clang++ --target=${FFBUILD_TOOLCHAIN}" \
+    CC="${FFBUILD_TOOLCHAIN}-gcc" \
+    CXX="${FFBUILD_TOOLCHAIN}-g++" \
     LD="${FFBUILD_TOOLCHAIN}-ld" \
     AR="${FFBUILD_TOOLCHAIN}-ar" \
     RANLIB="${FFBUILD_TOOLCHAIN}-ranlib" \
@@ -41,9 +41,7 @@ ENV PATH="/usr/${FFBUILD_TOOLCHAIN}/bin:${PATH}" \
     LDFLAGS="-static -static-libgcc -static-libstdc++ -L/opt/ffbuild/lib -O2 -pipe -fstack-protector-strong -Wl,--gc-sections -Wl,--strip-all" \
     CPPFLAGS="-I/opt/ffbuild/include" \
     STAGE_CFLAGS="" \
-    STAGE_CXXFLAGS="" \
-    CC_TARGET="${FFBUILD_TOOLCHAIN}" \
-    CXX_TARGET="${FFBUILD_TOOLCHAIN}"
+    STAGE_CXXFLAGS=""
 
 ADD toolchain.cmake /toolchain.cmake.template
 ADD cross.meson /cross.meson.template

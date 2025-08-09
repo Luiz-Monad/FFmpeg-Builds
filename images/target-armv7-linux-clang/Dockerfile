@@ -4,21 +4,21 @@ FROM $GH_REPO/runner-$RUNNER:latest
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     clang lld \
-    binutils-aarch64-linux-gnu gcc-aarch64-linux-gnu \
+    binutils-arm-linux-gnueabihf gcc-arm-linux-gnueabihf \
     pkg-config qemu-user-static && \
     apt-get -y clean && \
     rm -rf /var/lib/apt/lists/*
 
-ENV FFBUILD_TOOLCHAIN="aarch64-linux-gnu" \
-    FFBUILD_RUST_TARGET="aarch64-unknown-linux-gnu" \
-    FFBUILD_ARCH_FLAGS="-march=armv8-a -mtune=cortex-a72 -fPIC -DPIC" \
-    FFBUILD_CONFIGURE_FLAGS="--arch=aarch64 --cpu=armv8-a --target-os=linux" \
+ENV FFBUILD_TOOLCHAIN="arm-linux-gnueabihf" \
+    FFBUILD_RUST_TARGET="armv7-unknown-linux-gnueabihf" \
+    FFBUILD_ARCH_FLAGS="-march=armv7-a -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard -mfpu=vfpv3-d16 -fPIC -DPIC" \
+    FFBUILD_CONFIGURE_FLAGS="--arch=arm --cpu=cortex-a9 --target-os=linux" \
     FFBUILD_SYSTEM="linux" \
     FFBUILD_SYSTEM_NAME="Linux" \
     FFBUILD_VERSION="4.18.20" \
     FFBUILD_CPU_ENDIAN="little" \
-    FFBUILD_CPU_FAMILY="aarch64" \
-    FFBUILD_CPU="armv8-a"
+    FFBUILD_CPU_FAMILY="arm" \
+    FFBUILD_CPU="cortex-a9"
 
 ENV PATH="/usr/${FFBUILD_TOOLCHAIN}/bin:${PATH}" \
     FFBUILD_TARGET_FLAGS="--pkg-config=pkg-config --cross-prefix=${FFBUILD_TOOLCHAIN}- ${FFBUILD_CONFIGURE_FLAGS}" \

@@ -8,10 +8,10 @@ IN="$1"
 OUT="$2"
 
 TMPDIR="$(mktemp -d)"
-trap "rm -rf '$TMPDIR'" EXIT
-cd "$TMPDIR"
+trap "rm -rf '${AMP}TMPDIR'" EXIT
+cd "${AMP}TMPDIR"
 
 set -x
-python3 /opt/implib/implib-gen.py --target x86_64-linux-gnu --dlopen --lazy-load --verbose "$IN"
-${FFBUILD_CROSS_PREFIX}gcc $CFLAGS $STAGE_CFLAGS -Wa,--noexecstack -DIMPLIB_HIDDEN_SHIMS -c *.tramp.S *.init.c
-${FFBUILD_CROSS_PREFIX}ar -rcs "$OUT" *.tramp.o *.init.o
+python3 /opt/implib/implib-gen.py --target ${FFBUILD_TOOLCHAIN} --dlopen --lazy-load --verbose "${AMP}IN"
+${CC} ${CFLAGS} ${STAGE_CFLAGS} -Wa,--noexecstack -DIMPLIB_HIDDEN_SHIMS -fPIC -c *.tramp.S *.init.c
+${AR} -rcs "${AMP}OUT" *.tramp.o *.init.o
