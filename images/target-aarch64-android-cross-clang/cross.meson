@@ -1,0 +1,18 @@
+[binaries]
+c = '${CC}'
+cpp = '${CXX}'
+ld = '${LD}'
+ar = '${AR}'
+ranlib = '${RANLIB}'
+strip = '${STRIP}'
+pkg-config = '${PKG_CONFIG}'
+
+[host_machine]
+system = '${FFBUILD_SYSTEM}'
+cpu_family = '${FFBUILD_CPU_FAMILY}'
+cpu = '${FFBUILD_CPU}'
+endian = '${FFBUILD_CPU_ENDIAN}'
+
+[properties]
+root = '${COMPILER_ROOT}'
+sys_root = '${COMPILER_SYSROOT}'
