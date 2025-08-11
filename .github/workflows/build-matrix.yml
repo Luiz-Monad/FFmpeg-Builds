@@ -81,30 +81,30 @@ jobs:
       fail-fast: false
       matrix:
         combo:
-          # - { host: macos, target: aarch64-ios-clang }
-          # - { host: macos, target: aarch64-ios-xcode }
-          # - { host: macos, target: aarch64-macos-clang }
-          # - { host: macos, target: aarch64-macos-xcode }
-          # - { host: macos, target: x86_64-macos-clang }
-          # - { host: macos, target: x86_64-macos-xcode }
-          - { host: linux, target: aarch64-android-cross-clang }
-          # - { host: linux, target: aarch64-ios-cross-clang }
+          # # - { host: macos, target: aarch64-ios-clang }
+          # # - { host: macos, target: aarch64-ios-xcode }
+          # # - { host: macos, target: aarch64-macos-clang }
+          # # - { host: macos, target: aarch64-macos-xcode }
+          # # - { host: macos, target: x86_64-macos-clang }
+          # # - { host: macos, target: x86_64-macos-xcode }
+          # - { host: linux, target: aarch64-android-cross-clang }
+          # # - { host: linux, target: aarch64-ios-cross-clang }
           - { host: linux, target: aarch64-linux-clang }
-          - { host: linux, target: aarch64-linux-gcc }
-          # - { host: linux, target: aarch64-macos-cross-clang }
-          - { host: linux, target: aarch64-windows-cross-clang }
-          - { host: linux, target: armv7-android-cross-clang }
-          - { host: linux, target: armv7-linux-clang }
-          - { host: linux, target: armv7-linux-gcc }
-          - { host: linux, target: x86_64-android-cross-clang }
-          - { host: linux, target: x86_64-linux-clang }
-          - { host: linux, target: x86_64-linux-gcc }
-          # - { host: linux, target: x86_64-macos-cross-clang }
-          - { host: linux, target: x86_64-windows-cross-clang }
-          # - { host: windows, target: aarch64-windows-clang }
-          # - { host: windows, target: aarch64-windows-msvc }
-          # - { host: windows, target: x86_64-windows-clang }
-          # - { host: windows, target: x86_64-windows-msvc }
+          # - { host: linux, target: aarch64-linux-gcc }
+          # # - { host: linux, target: aarch64-macos-cross-clang }
+          # - { host: linux, target: aarch64-windows-cross-clang }
+          # - { host: linux, target: armv7-android-cross-clang }
+          # - { host: linux, target: armv7-linux-clang }
+          # - { host: linux, target: armv7-linux-gcc }
+          # - { host: linux, target: x86_64-android-cross-clang }
+          # - { host: linux, target: x86_64-linux-clang }
+          # - { host: linux, target: x86_64-linux-gcc }
+          # # - { host: linux, target: x86_64-macos-cross-clang }
+          # - { host: linux, target: x86_64-windows-cross-clang }
+          # # - { host: windows, target: aarch64-windows-clang }
+          # # - { host: windows, target: aarch64-windows-msvc }
+          # # - { host: windows, target: x86_64-windows-clang }
+          # # - { host: windows, target: x86_64-windows-msvc }
     uses: ./.github/workflows/build.yml
     if: ${{ github.event.inputs.buildOnly != 'true' }}
     with:
