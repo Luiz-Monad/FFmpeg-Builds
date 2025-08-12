@@ -11,13 +11,28 @@ on:
 
   workflow_dispatch:
     inputs:
-      doRelease:
-        description: "Publish new release"
+      skipBase:
+        description: 'Skip building base image'
         type: boolean
         default: false
 
-      buildOnly:
-        description: "Only build ffmpeg"
+      skipTargetBase:
+        description: 'Skip building target base image'
+        type: boolean
+        default: false
+
+      skipTargetVariant:
+        description: 'Skip building target variant image'
+        type: boolean
+        default: false
+
+      skipFFmpeg:
+        description: 'Skip building ffmpeg'
+        type: boolean
+        default: false
+
+      doRelease:
+        description: "Publish new release"
         type: boolean
         default: false
 
@@ -39,9 +54,8 @@ jobs:
     name: Build Runner Base
     needs: prepare
     uses: ./.github/workflows/build.yml
-    if: ${{ github.event.inputs.buildOnly != 'true' }}
     with:
-      buildBase: true
+      buildBase: ${{ !inputs.skipBase }}
       buildTargetBase: false
       buildTargetVariant: false
       buildFFmpeg: false
@@ -62,9 +76,8 @@ jobs:
           - { host: linux }
           # - { host: windows }
     uses: ./.github/workflows/build.yml
-    if: ${{ github.event.inputs.buildOnly != 'true' }}
     with:
-      buildBase: true
+      buildBase: ${{ !inputs.skipBase }}
       buildTargetBase: false
       buildTargetVariant: false
       buildFFmpeg: false
@@ -81,17 +94,17 @@ jobs:
       fail-fast: false
       matrix:
         combo:
-          # # - { host: macos, target: aarch64-ios-clang }
-          # # - { host: macos, target: aarch64-ios-xcode }
-          # # - { host: macos, target: aarch64-macos-clang }
-          # # - { host: macos, target: aarch64-macos-xcode }
-          # # - { host: macos, target: x86_64-macos-clang }
-          # # - { host: macos, target: x86_64-macos-xcode }
+          # - { host: macos, target: aarch64-ios-clang }
+          # - { host: macos, target: aarch64-ios-xcode }
+          # - { host: macos, target: aarch64-macos-clang }
+          # - { host: macos, target: aarch64-macos-xcode }
+          # - { host: macos, target: x86_64-macos-clang }
+          # - { host: macos, target: x86_64-macos-xcode }
           # - { host: linux, target: aarch64-android-cross-clang }
-          # # - { host: linux, target: aarch64-ios-cross-clang }
-          - { host: linux, target: aarch64-linux-clang }
+          - { host: linux, target: aarch64-ios-cross-clang }
+          # - { host: linux, target: aarch64-linux-clang }
           # - { host: linux, target: aarch64-linux-gcc }
-          # # - { host: linux, target: aarch64-macos-cross-clang }
+          - { host: linux, target: aarch64-macos-cross-clang }
           # - { host: linux, target: aarch64-windows-cross-clang }
           # - { host: linux, target: armv7-android-cross-clang }
           # - { host: linux, target: armv7-linux-clang }
@@ -99,17 +112,16 @@ jobs:
           # - { host: linux, target: x86_64-android-cross-clang }
           # - { host: linux, target: x86_64-linux-clang }
           # - { host: linux, target: x86_64-linux-gcc }
-          # # - { host: linux, target: x86_64-macos-cross-clang }
+          - { host: linux, target: x86_64-macos-cross-clang }
           # - { host: linux, target: x86_64-windows-cross-clang }
-          # # - { host: windows, target: aarch64-windows-clang }
-          # # - { host: windows, target: aarch64-windows-msvc }
-          # # - { host: windows, target: x86_64-windows-clang }
-          # # - { host: windows, target: x86_64-windows-msvc }
+          # - { host: windows, target: aarch64-windows-clang }
+          # - { host: windows, target: aarch64-windows-msvc }
+          # - { host: windows, target: x86_64-windows-clang }
+          # - { host: windows, target: x86_64-windows-msvc }
     uses: ./.github/workflows/build.yml
-    if: ${{ github.event.inputs.buildOnly != 'true' }}
     with:
       buildBase: false
-      buildTargetBase: true
+      buildTargetBase: ${{ !inputs.skipTargetBase }}
       buildTargetVariant: false
       buildFFmpeg: false
       publishRelease: false
@@ -131,11 +143,10 @@ jobs:
           - shared 7.1.1
           - static 7.1.1
     uses: ./.github/workflows/build.yml
-    if: ${{ github.event.inputs.buildOnly != 'true' }}
     with:
       buildBase: false
       buildTargetBase: false
-      buildTargetVariant: ${{ github.event.inputs.buildOnly != 'true' }}
+      buildTargetVariant: ${{ !inputs.skipTargetVariant }}
       buildFFmpeg: false
       publishRelease: false
       runner: ${{ matrix.combo.host }}
@@ -156,7 +167,7 @@ jobs:
       buildBase: false
       buildTargetBase: false
       buildTargetVariant: false
-      buildFFmpeg: ${{ github.event.inputs.buildOnly == 'true' }}
+      buildFFmpeg: ${{ !inputs.skipFFmpeg }}
       publishRelease: ${{ github.event_name == 'schedule' || github.event.inputs.doRelease }}
       runner: ${{ matrix.combo.host }}
       host: ${{ matrix.combo.host }}

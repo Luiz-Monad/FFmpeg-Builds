@@ -57,26 +57,9 @@ env:
 
 jobs:
 
-  show_input_values:
-    name: Show input values
-    runs-on: ${{ inputs.runner }}
-    steps:
-      - name: Display Input Values
-        run: |
-          echo "Build Base: ${{ inputs.buildBase }}"
-          echo "Build Target Base: ${{ inputs.buildTargetBase }}"
-          echo "Build Target Variant: ${{ inputs.buildTargetVariant }}"
-          echo "Build FFmpeg: ${{ inputs.buildFFmpeg }}"
-          echo "Publish Release: ${{ inputs.publishRelease }}"
-          echo "Runner: ${{ inputs.runner }}"
-          echo "Host: ${{ inputs.host }}"
-          echo "Target: ${{ inputs.target }}"
-          echo "Variant: ${{ inputs.variant }}"
-
   build_base:
     name: Build runner base image
     if: ${{ inputs.buildBase }}
-    needs: show_input_values
     runs-on: ${{ inputs.runner }}
     steps:
 
@@ -166,7 +149,6 @@ jobs:
   build_target_base:
     name: Build target base image
     if: ${{ inputs.buildTargetBase }}
-    needs: show_input_values
     runs-on: ${{ inputs.runner }}
     steps:
 
@@ -229,7 +211,6 @@ jobs:
   build_target_variant:
     name: Build target variant image
     if: ${{ inputs.buildTargetVariant }}
-    needs: show_input_values
     runs-on: ${{ inputs.runner }}
     steps:
 
@@ -304,7 +285,6 @@ jobs:
   build_ffmpeg:
     name: Build ffmpeg
     if: ${{ inputs.buildFFmpeg }}
-    needs: show_input_values
     runs-on: ${{ inputs.runner }}
     steps:
 
