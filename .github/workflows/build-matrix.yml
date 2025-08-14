@@ -11,165 +11,162 @@ on:
 
   workflow_dispatch:
     inputs:
+
       skipBase:
         description: 'Skip building base image'
         type: boolean
-        default: false
+
+      skipRunner:
+        description: 'Skip building runner image'
+        type: boolean
 
       skipTargetBase:
         description: 'Skip building target base image'
         type: boolean
-        default: false
 
       skipTargetVariant:
         description: 'Skip building target variant image'
         type: boolean
-        default: false
 
       skipFFmpeg:
         description: 'Skip building ffmpeg'
         type: boolean
-        default: false
 
       doRelease:
         description: "Publish new release"
         type: boolean
-        default: false
 
       debug:
         description: "Run with debug"
-        required: false
-        default: false
         type: boolean
 
 jobs:
+  setup:
+    name: Setup Build Matrix
+    runs-on: linux
+    outputs:
+      json: ${{ steps.set_matrix.outputs.json }}
+    steps:
+      - name: Set Matrix
+        id: set_matrix
+        run: echo "json=$(echo "$DATA" | yq -o=json -I=0 '.')" >> $GITHUB_OUTPUT
+        env:
+          DATA: >-
+            targets:
+              # - { host: macos, target: aarch64-ios-clang }
+              # - { host: macos, target: aarch64-ios-xcode }
+              # - { host: macos, target: aarch64-macos-clang }
+              # - { host: macos, target: aarch64-macos-xcode }
+              # - { host: macos, target: x86_64-macos-clang }
+              # - { host: macos, target: x86_64-macos-xcode }
+              - { host: linux, target: aarch64-android-cross-clang }
+              - { host: linux, target: aarch64-ios-cross-clang }
+              - { host: linux, target: aarch64-linux-clang }
+              - { host: linux, target: aarch64-linux-gcc }
+              - { host: linux, target: aarch64-macos-cross-clang }
+              - { host: linux, target: aarch64-windows-cross-clang }
+              - { host: linux, target: armv7-android-cross-clang }
+              - { host: linux, target: armv7-linux-clang }
+              - { host: linux, target: armv7-linux-gcc }
+              - { host: linux, target: x86_64-android-cross-clang }
+              - { host: linux, target: x86_64-linux-clang }
+              - { host: linux, target: x86_64-linux-gcc }
+              - { host: linux, target: x86_64-macos-cross-clang }
+              # - { host: linux, target: x86_64-windows-cross-clang }
+              # - { host: windows, target: aarch64-windows-clang }
+              # - { host: windows, target: aarch64-windows-msvc }
+              # - { host: windows, target: x86_64-windows-clang }
+              # - { host: windows, target: x86_64-windows-msvc }
+
+            runners:
+              # - { host: macos }
+              - { host: linux }
+              # - { host: windows }
+
+            variants:
+              # - gpl 7.1.1
+              # - lgpl 7.1.1
+              # - shared 7.1.1
+              - static 7.1.1          
+
   prepare:
-    name: Checkout
+    name: Prepare
+    needs: [setup]
     runs-on: linux
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-  build_runner_base:
-    name: Build Runner Base
-    needs: prepare
-    uses: ./.github/workflows/build.yml
+  build_base:
+    name: Build Basics
+    needs: [setup, prepare]
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - base
+    uses: ./.github/workflows/build-step.yml
     with:
       buildBase: ${{ !inputs.skipBase }}
-      buildTargetBase: false
-      buildTargetVariant: false
-      buildFFmpeg: false
-      publishRelease: false
       runner: linux
-      host: base
-      target: base
-      variant: base
 
   build_runners:
     name: Build Runners
-    needs: build_runner_base
+    needs: [setup, build_base]
     strategy:
       fail-fast: false
       matrix:
-        combo:
-          # - { host: macos }
-          - { host: linux }
-          # - { host: windows }
-    uses: ./.github/workflows/build.yml
+        target: ${{ fromJSON(needs.setup.outputs.json).runners }}
+    uses: ./.github/workflows/build-step.yml
     with:
-      buildBase: ${{ !inputs.skipBase }}
-      buildTargetBase: false
-      buildTargetVariant: false
-      buildFFmpeg: false
-      publishRelease: false
-      runner: ${{ matrix.combo.host }}
-      host: ${{ matrix.combo.host }}
-      target: base
-      variant: base
+      buildRunner: ${{ !inputs.skipRunner }}
+      runner: ${{ matrix.target.host }}
+      host: ${{ matrix.target.host }}
 
   build_targets:
     name: Build Targets
-    needs: build_runners
+    needs: [setup, build_runners]
     strategy:
       fail-fast: false
       matrix:
-        combo:
-          # - { host: macos, target: aarch64-ios-clang }
-          # - { host: macos, target: aarch64-ios-xcode }
-          # - { host: macos, target: aarch64-macos-clang }
-          # - { host: macos, target: aarch64-macos-xcode }
-          # - { host: macos, target: x86_64-macos-clang }
-          # - { host: macos, target: x86_64-macos-xcode }
-          # - { host: linux, target: aarch64-android-cross-clang }
-          - { host: linux, target: aarch64-ios-cross-clang }
-          # - { host: linux, target: aarch64-linux-clang }
-          # - { host: linux, target: aarch64-linux-gcc }
-          - { host: linux, target: aarch64-macos-cross-clang }
-          # - { host: linux, target: aarch64-windows-cross-clang }
-          # - { host: linux, target: armv7-android-cross-clang }
-          # - { host: linux, target: armv7-linux-clang }
-          # - { host: linux, target: armv7-linux-gcc }
-          # - { host: linux, target: x86_64-android-cross-clang }
-          # - { host: linux, target: x86_64-linux-clang }
-          # - { host: linux, target: x86_64-linux-gcc }
-          - { host: linux, target: x86_64-macos-cross-clang }
-          # - { host: linux, target: x86_64-windows-cross-clang }
-          # - { host: windows, target: aarch64-windows-clang }
-          # - { host: windows, target: aarch64-windows-msvc }
-          # - { host: windows, target: x86_64-windows-clang }
-          # - { host: windows, target: x86_64-windows-msvc }
-    uses: ./.github/workflows/build.yml
+        target: ${{ fromJSON(needs.setup.outputs.json).targets }}
+    uses: ./.github/workflows/build-step.yml
     with:
-      buildBase: false
       buildTargetBase: ${{ !inputs.skipTargetBase }}
-      buildTargetVariant: false
-      buildFFmpeg: false
-      publishRelease: false
-      runner: ${{ matrix.combo.host }}
-      host: ${{ matrix.combo.host }}
-      target: ${{ matrix.combo.target }}
+      runner: ${{ matrix.target.host }}
+      host: ${{ matrix.target.host }}
+      target: ${{ matrix.target.target }}
       variant: base
 
   build_target_variants:
     name: Build Target Variants
-    needs: build_targets
+    needs: [setup, build_targets]
     strategy:
       fail-fast: false
       matrix:
-        combo: ${{ needs.build_targets.strategy.combo }}
-        variant:
-          - gpl 7.1.1
-          - lgpl 7.1.1
-          - shared 7.1.1
-          - static 7.1.1
-    uses: ./.github/workflows/build.yml
+        target: ${{ fromJSON(needs.setup.outputs.json).targets }}
+        variant: ${{ fromJSON(needs.setup.outputs.json).variants }}
+    uses: ./.github/workflows/build-step.yml
     with:
-      buildBase: false
-      buildTargetBase: false
       buildTargetVariant: ${{ !inputs.skipTargetVariant }}
-      buildFFmpeg: false
-      publishRelease: false
-      runner: ${{ matrix.combo.host }}
-      host: ${{ matrix.combo.host }}
-      target: ${{ matrix.combo.target }}
+      runner: ${{ matrix.target.host }}
+      host: ${{ matrix.target.host }}
+      target: ${{ matrix.target.target }}
       variant: ${{ matrix.variant }}
 
   build_ffmpeg:
     name: Build FFmpeg Variants
-    needs: build_target_variants
+    needs: [setup, build_target_variants]
     strategy:
       fail-fast: false
       matrix:
-        combo: ${{ needs.build_target_variants.strategy.combo }}
-        variant: ${{ needs.build_target_variants.strategy.variant }}
-    uses: ./.github/workflows/build.yml
+        target: ${{ fromJSON(needs.setup.outputs.json).targets }}
+        variant: ${{ fromJSON(needs.setup.outputs.json).variants }}
+    uses: ./.github/workflows/build-step.yml
     with:
-      buildBase: false
-      buildTargetBase: false
-      buildTargetVariant: false
       buildFFmpeg: ${{ !inputs.skipFFmpeg }}
       publishRelease: ${{ github.event_name == 'schedule' || github.event.inputs.doRelease }}
-      runner: ${{ matrix.combo.host }}
-      host: ${{ matrix.combo.host }}
-      target: ${{ matrix.combo.target }}
+      runner: ${{ matrix.target.host }}
+      host: ${{ matrix.target.host }}
+      target: ${{ matrix.target.target }}
       variant: ${{ matrix.variant }}

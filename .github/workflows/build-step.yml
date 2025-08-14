@@ -1,0 +1,212 @@
+name: Build FFmpeg
+
+on:
+
+  workflow_call:
+    inputs:
+
+      runner:
+        description: 'Job runner'
+        type: string
+        required: true
+
+      host:
+        description: 'Compiler host'
+        type: string
+
+      target:
+        description: 'Compiler target'
+        type: string
+
+      variant:
+        description: 'Build variant'
+        type: string
+
+      buildBase:
+        description: 'Make base image'
+        type: boolean
+
+      buildRunner:
+        description: 'Make runner image'
+        type: boolean
+
+      buildTargetBase:
+        description: 'Make target base image'
+        type: boolean
+
+      buildTargetVariant:
+        description: 'Make target variant image'
+        type: boolean
+
+      buildFFmpeg:
+        description: 'Make ffmpeg'
+        type: boolean
+
+      publishRelease:
+        description: 'Publish release'
+        type: boolean
+
+env:
+  DOCKER_BUILDKIT: 1
+  RUNNER: ${{ inputs.runner }}
+  TARGET: ${{ inputs.target }}
+
+jobs:
+  start:
+    name: Starting
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - name: Run
+        run: echo "start"
+
+  build_base:
+    name: Build generic base image
+    if: ${{ inputs.buildBase }}
+    uses: ./.github/workflows/build-layer.yml
+    with:
+      runner: ${{ inputs.runner }}
+      host: base
+      target: base
+      variant: base
+      context: images/runner-base
+      imageName: runner-base
+      writeDownloadCache: true
+
+  build_runner:
+    name: Build runner base image
+    if: ${{ inputs.buildRunner }}
+    uses: ./.github/workflows/build-layer.yml
+    with:
+      runner: ${{ inputs.runner }}
+      host: ${{ inputs.host }}
+      target: base
+      variant: base
+      context: images/runner-${{ inputs.host }}
+      imageName: runner-${{ inputs.host }}
+
+  build_target_base:
+    name: Build target base image
+    if: ${{ inputs.buildTargetBase }}
+    uses: ./.github/workflows/build-layer.yml
+    with:
+      runner: ${{ inputs.runner }}
+      host: ${{ inputs.host }}
+      target: ${{ inputs.target }}
+      variant: ${{ inputs.variant }}
+      context: images/target-${{ inputs.target }}
+      imageName: target-${{ inputs.target }}
+
+  build_target_variant:
+    name: Build target variant image
+    if: ${{ inputs.buildTargetVariant }}
+    uses: ./.github/workflows/build-layer.yml
+    with:
+      runner: ${{ inputs.runner }}
+      host: ${{ inputs.host }}
+      target: ${{ inputs.target }}
+      variant: ${{ inputs.variant }}
+      context: .
+      imageName: ${{ inputs.target }}-${{ inputs.variant }}
+      readDownloadCache: true
+      generator: ./generate.sh ${{ inputs.runner }} ${{ inputs.target }} ${{ inputs.variant }}
+
+  build_ffmpeg:
+    name: Build ffmpeg
+    if: ${{ inputs.buildFFmpeg }}
+    runs-on: ${{ inputs.runner }}
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Free Disk-Space
+        run: |
+          set -e
+          ./util/free_disk.sh
+
+      - name: Login to Docker
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build ffmpeg
+        run: |
+          T="$(echo -n ${{ github.token }} | sha256sum | head -c 64)" && echo -e "::add-mask::${T}\n::stop-commands::${T}"
+          ./build.sh ${{ inputs.runner }} ${{ inputs.target }} ${{ inputs.variant }}
+
+      - name: Replace spaces in string
+        id: strs
+        run: |
+          SLUG="${{ inputs.target }}-${{ inputs.variant }}"
+          echo "artifact_slug=${SLUG// /-}" >> $GITHUB_OUTPUT
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-${{ steps.strs.outputs.artifact_slug }}
+          overwrite: true
+          path: artifacts/*
+
+  publish_release:
+    name: Publish release
+    if: ${{ !cancelled() && inputs.publishRelease && needs.build_ffmpeg.result == 'success' }}
+    needs: build_ffmpeg
+    runs-on: ${{ inputs.runner }}
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Free Disk-Space
+        run: |
+          set -e
+          ./util/free_disk.sh
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ffmpeg-*
+          merge-multiple: true
+          path: artifacts
+
+      - name: Create release
+        id: create_release
+        run: |
+          set -xe
+          shopt -s nullglob
+          RELDATE="$(date +'%Y-%m-%d %H:%M')"
+          NAME="Auto-Build $RELDATE"
+          TAGNAME="autobuild-$(date +'%Y-%m-%d-%H-%M')"
+          (cd artifacts && sha256sum *.{zip,tar.xz} > checksums.sha256)
+          gh release create "$TAGNAME" --target "master" --title "$NAME" artifacts/*.{zip,tar.xz} artifacts/checksums.*
+          echo "tag_name=${TAGNAME}" >> $GITHUB_OUTPUT
+          echo "rel_date=${RELDATE}" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Update Latest
+        run: |
+          set -xe
+          shopt -s nullglob
+          mkdir latest_artifacts
+          ./util/repack_latest.sh latest_artifacts artifacts/*.{zip,tar.xz}
+          (cd latest_artifacts && sha256sum *.{zip,tar.xz} > checksums.sha256)
+          NAME="Latest Auto-Build (${{ steps.create_release.outputs.rel_date }})"
+          TAGNAME="latest"
+          gh release delete --cleanup-tag --yes "$TAGNAME" || true
+          sleep 15
+          gh release create "$TAGNAME" --target "master" --title "$NAME" latest_artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Update Wiki
+        run: ./util/update_wiki.sh artifacts ${{ steps.create_release.outputs.tag_name }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Prune old releases
+        run: ./util/prunetags.sh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

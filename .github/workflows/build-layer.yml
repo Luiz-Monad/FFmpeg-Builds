@@ -1,0 +1,167 @@
+name: Build FFmpeg
+
+on:
+  workflow_call:
+    inputs:
+
+      runner:
+        description: 'Job runner'
+        required: true
+        type: string
+
+      host:
+        description: 'Compiler host'
+        required: true
+        type: string
+
+      target:
+        description: 'Compiler target'
+        required: true
+        type: string
+
+      variant:
+        description: 'Build variant'
+        required: true
+        type: string
+
+      context:
+        description: 'Docker build context'
+        required: true
+        type: string
+
+      generator:
+        description: 'Name of context generator'
+        type: string
+        default: ''
+
+      imageName:
+        description: 'Name of the layer image'
+        required: true
+        type: string
+
+      writeDownloadCache:
+        description: 'Generate or update the download cache'
+        type: boolean
+
+      readDownloadCache:
+        description: 'Read the download cache'
+        type: boolean
+
+env:
+  DOCKER_BUILDKIT: 1
+  RUNNER: ${{ inputs.runner }}
+  HOST: ${{ inputs.host }}
+  TARGET: ${{ inputs.target }}
+  VARIANT: ${{ inputs.variant }}
+
+jobs:
+
+  build_layer:
+    name: Build image layer
+    runs-on: ${{ inputs.runner }}
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Free Disk-Space
+        run: |
+          set -e
+          ./util/free_disk.sh
+
+      - name: Install buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-config: .github/buildkit.toml
+
+      - name: Login to Docker
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Image Layer Name
+        id: imagename
+        run: |
+          IMG="${GITHUB_REPOSITORY,,}/${{ inputs.imageName }}"
+          echo "name=ghcr.io/${IMG/ /-}" >> $GITHUB_OUTPUT
+          echo "rawname=${IMG/ /-}" >> $GITHUB_OUTPUT
+          echo "gh_repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
+
+      - name: Get download cache key
+        id: dl_cache_read
+        if: ${{ inputs.readDownloadCache }}
+        run: |
+          echo "dltagname=$(./util/get_dl_cache_tag.sh)" >> $GITHUB_OUTPUT
+
+      - name: Stop Commands
+        run: T="$(echo -n ${{ github.token }} | sha256sum | head -c 64)" && echo -e "::add-mask::${T}\n::stop-commands::${T}"
+
+      - name: Generate Dockerfile if specified
+        if: ${{ inputs.generator != '' }}
+        run: ${{ inputs.generator }}
+
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        if: ${{ inputs.readDownloadCache }}
+        with:
+          path: .cache/downloads
+          key: download-cache-${{ steps.dl_cache_read.outputs.dltagname }}
+          fail-on-cache-miss: true
+
+      - name: Build Image Layer container
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.context }}
+          pull: true
+          push: true
+          provenance: false
+          tags: ${{ steps.imagename.outputs.name }}:latest
+          cache-to: type=registry,mode=max,ref=${{ steps.imagename.outputs.name }}:cache
+          cache-from: type=registry,ref=${{ steps.imagename.outputs.name }}:cache
+          build-args: |
+            RUNNER=${{ inputs.runner }}
+            GH_REPO=ghcr.io/${{ steps.imagename.outputs.gh_repo }}
+
+      - name: Get download cache key
+        id: dl_cache_write
+        if: ${{ inputs.writeDownloadCache }}
+        run: |
+          echo "dltagname=$(./util/get_dl_cache_tag.sh)" >> $GITHUB_OUTPUT
+
+      - name: Download cache artifact
+        if: ${{ inputs.writeDownloadCache }}
+        uses: actions/cache@v4
+        with:
+          path: .cache/downloads
+          key: download-cache-${{ steps.dl_cache_write.outputs.dltagname }}
+          restore-keys: |
+            download-cache-
+
+      - name: Update cache
+        if: ${{ inputs.writeDownloadCache }}
+        run: |
+          set -e
+          ./download.sh
+          ./util/clean_cache.sh
+          tar czf .cache/cache.tar.gz .cache/downloads/*
+
+      - name: Upload cache artifact
+        if: ${{ inputs.writeDownloadCache }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: download-cache
+          overwrite: true
+          path: .cache/cache.tar.gz
+
+      - name: Cleanup
+        continue-on-error: true
+        uses: BtbN/delete-untagged-ghcr-action@main
+        with:
+          token: ${{ github.token }}
+          package_name: ${{ steps.imagename.outputs.rawname }}
+          repository_owner: ${{ github.repository_owner }}
+          repository: ${{ github.repository }}
+          owner_type: user
+          untagged_only: true
