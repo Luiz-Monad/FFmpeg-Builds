@@ -130,25 +130,34 @@ jobs:
         run: |
           echo "dltagname=$(./util/get_dl_cache_tag.sh)" >> $GITHUB_OUTPUT
 
-      - name: Download cache artifact
+      - name: Check if cache exists
+        id: cache_check
         if: ${{ inputs.writeDownloadCache }}
+        uses: actions/cache@v4
+        with:
+          path: .cache/downloads
+          key: download-cache-${{ steps.dl_cache_write.outputs.dltagname }}
+          lookup-only: true
+      
+      - name: Download cache artifact
+        if: ${{ inputs.writeDownloadCache && steps.cache_check.outputs.cache-hit != 'true' }}
         uses: actions/cache@v4
         with:
           path: .cache/downloads
           key: download-cache-${{ steps.dl_cache_write.outputs.dltagname }}
           restore-keys: |
             download-cache-
-
+      
       - name: Update cache
-        if: ${{ inputs.writeDownloadCache }}
+        if: ${{ inputs.writeDownloadCache && steps.cache_check.outputs.cache-hit != 'true' }}
         run: |
           set -e
           ./download.sh
           ./util/clean_cache.sh
           tar czf .cache/cache.tar.gz .cache/downloads/*
-
+      
       - name: Upload cache artifact
-        if: ${{ inputs.writeDownloadCache }}
+        if: ${{ inputs.writeDownloadCache && steps.cache_check.outputs.cache-hit != 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: download-cache
