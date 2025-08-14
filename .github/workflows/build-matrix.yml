@@ -87,7 +87,7 @@ jobs:
               # - gpl 7.1.1
               # - lgpl 7.1.1
               # - shared 7.1.1
-              - static 7.1.1          
+              - static 7.1.1
 
   prepare:
     name: Prepare
@@ -106,6 +106,7 @@ jobs:
         target:
           - base
     uses: ./.github/workflows/build-step.yml
+    secrets: inherit
     with:
       buildBase: ${{ !inputs.skipBase }}
       runner: linux
@@ -118,6 +119,7 @@ jobs:
       matrix:
         target: ${{ fromJSON(needs.setup.outputs.json).runners }}
     uses: ./.github/workflows/build-step.yml
+    secrets: inherit
     with:
       buildRunner: ${{ !inputs.skipRunner }}
       runner: ${{ matrix.target.host }}
@@ -131,6 +133,7 @@ jobs:
       matrix:
         target: ${{ fromJSON(needs.setup.outputs.json).targets }}
     uses: ./.github/workflows/build-step.yml
+    secrets: inherit
     with:
       buildTargetBase: ${{ !inputs.skipTargetBase }}
       runner: ${{ matrix.target.host }}
@@ -147,6 +150,7 @@ jobs:
         target: ${{ fromJSON(needs.setup.outputs.json).targets }}
         variant: ${{ fromJSON(needs.setup.outputs.json).variants }}
     uses: ./.github/workflows/build-step.yml
+    secrets: inherit
     with:
       buildTargetVariant: ${{ !inputs.skipTargetVariant }}
       runner: ${{ matrix.target.host }}
@@ -163,6 +167,7 @@ jobs:
         target: ${{ fromJSON(needs.setup.outputs.json).targets }}
         variant: ${{ fromJSON(needs.setup.outputs.json).variants }}
     uses: ./.github/workflows/build-step.yml
+    secrets: inherit
     with:
       buildFFmpeg: ${{ !inputs.skipFFmpeg }}
       publishRelease: ${{ github.event_name == 'schedule' || github.event.inputs.doRelease }}

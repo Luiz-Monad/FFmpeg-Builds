@@ -1,8 +1,16 @@
 name: Build FFmpeg
 
 on:
-
   workflow_call:
+
+    secrets:
+
+      NGROK_TOKEN:
+        required: true
+
+      NGROK_SSH_PUBKEY:
+        required: true
+
     inputs:
 
       runner:
@@ -61,8 +69,10 @@ jobs:
 
   build_base:
     name: Build generic base image
+    needs: start
     if: ${{ inputs.buildBase }}
     uses: ./.github/workflows/build-layer.yml
+    secrets: inherit
     with:
       runner: ${{ inputs.runner }}
       host: base
@@ -74,8 +84,10 @@ jobs:
 
   build_runner:
     name: Build runner base image
+    needs: start
     if: ${{ inputs.buildRunner }}
     uses: ./.github/workflows/build-layer.yml
+    secrets: inherit
     with:
       runner: ${{ inputs.runner }}
       host: ${{ inputs.host }}
@@ -86,8 +98,10 @@ jobs:
 
   build_target_base:
     name: Build target base image
+    needs: start
     if: ${{ inputs.buildTargetBase }}
     uses: ./.github/workflows/build-layer.yml
+    secrets: inherit
     with:
       runner: ${{ inputs.runner }}
       host: ${{ inputs.host }}
@@ -98,8 +112,10 @@ jobs:
 
   build_target_variant:
     name: Build target variant image
+    needs: start
     if: ${{ inputs.buildTargetVariant }}
     uses: ./.github/workflows/build-layer.yml
+    secrets: inherit
     with:
       runner: ${{ inputs.runner }}
       host: ${{ inputs.host }}
@@ -112,6 +128,7 @@ jobs:
 
   build_ffmpeg:
     name: Build ffmpeg
+    needs: start
     if: ${{ inputs.buildFFmpeg }}
     runs-on: ${{ inputs.runner }}
     steps:

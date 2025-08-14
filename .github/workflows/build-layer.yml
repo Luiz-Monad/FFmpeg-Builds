@@ -2,6 +2,15 @@ name: Build FFmpeg
 
 on:
   workflow_call:
+
+    secrets:
+
+      NGROK_TOKEN:
+        required: true
+
+      NGROK_SSH_PUBKEY:
+        required: true
+
     inputs:
 
       runner:
@@ -120,6 +129,9 @@ jobs:
           tags: ${{ steps.imagename.outputs.name }}:latest
           cache-to: type=registry,mode=max,ref=${{ steps.imagename.outputs.name }}:cache
           cache-from: type=registry,ref=${{ steps.imagename.outputs.name }}:cache
+          secrets: |
+            "NGROK_TOKEN=${{ secrets.NGROK_TOKEN }}"
+            "NGROK_SSH_PUBKEY=${{ secrets.NGROK_SSH_PUBKEY }}"
           build-args: |
             RUNNER=${{ inputs.runner }}
             GH_REPO=ghcr.io/${{ steps.imagename.outputs.gh_repo }}

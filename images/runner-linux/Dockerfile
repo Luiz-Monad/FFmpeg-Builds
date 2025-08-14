@@ -35,7 +35,7 @@ COPY --from=base /runner/ /input/
 RUN for s in /input/*.sh; do cp "$s" /usr/bin/$(basename "$s" .sh); done
 RUN rm -rf /input/
 
-ENV HOST_CC="gcc" \
-    HOST_CXX="g++" \
+ENV HOST_CC="clang" \
+    HOST_CXX="clang++" \
     HOST_CFLAGS="-O2 -pipe" \
     HOST_CXXFLAGS="-O2 -pipe"
