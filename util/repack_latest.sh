@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -xe
 
 if [[ $# -lt 2 ]]; then
     echo "Missing arguments"
@@ -19,7 +19,7 @@ while [[ $# -gt 0 ]]; do
     shift
 
     (
-        set -e
+        set -xe
         REPACK_DIR="repack_dir/$BASHPID"
         rm -rf "$REPACK_DIR"
         mkdir "$REPACK_DIR"

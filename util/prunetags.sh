@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -xe
 git fetch --tags
 TAGS=( $(git tag -l "autobuild-*" | sort -r) )
 

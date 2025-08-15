@@ -1,5 +1,5 @@
-w#!/bin/bash
-set -e
+#!/bin/bash
+set -xe
 
 if [[ $# != 2 ]]; then
     echo "Missing arguments"

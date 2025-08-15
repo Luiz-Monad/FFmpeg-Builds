@@ -170,7 +170,7 @@ jobs:
     secrets: inherit
     with:
       buildFFmpeg: ${{ !inputs.skipFFmpeg }}
-      publishRelease: ${{ github.event_name == 'schedule' || github.event.inputs.doRelease }}
+      publishRelease: ${{ github.event_name == 'schedule' || inputs.doRelease }}
       runner: ${{ matrix.target.host }}
       host: ${{ matrix.target.host }}
       target: ${{ matrix.target.target }}
