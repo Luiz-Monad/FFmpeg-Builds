@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -xe
 shopt -s globstar
 cd "$(dirname "$0")"
 source util/vars.sh
@@ -117,7 +117,7 @@ get_output() {
     )
 }
 
-source "variants/${TARGET}-${VARIANT}.sh"
+source "${VARIANT_FILE}"
 
 for addin in ${ADDINS[*]}; do
     source "addins/${addin}.sh"
