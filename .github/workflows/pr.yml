@@ -67,9 +67,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Free Disk-Space
-        run: |
-          set -e
-          ./util/free_disk.sh
+        run: ./util/free_disk.sh
 
       - name: Install buildx
         uses: docker/setup-buildx-action@v3

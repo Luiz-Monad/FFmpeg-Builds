@@ -74,9 +74,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Free Disk-Space
-        run: |
-          set -e
-          ./util/free_disk.sh
+        run: ./util/free_disk.sh
 
       - name: Install buildx
         uses: docker/setup-buildx-action@v3
@@ -118,6 +116,9 @@ jobs:
           path: .cache/downloads
           key: download-cache-${{ steps.dl_cache_read.outputs.dltagname }}
           fail-on-cache-miss: true
+
+      - name: Show Dockerfile content
+        run: cat "${{ inputs.context }}/Dockerfile"
 
       - name: Build Image Layer container
         uses: docker/build-push-action@v6
@@ -163,7 +164,7 @@ jobs:
       - name: Update cache
         if: ${{ inputs.writeDownloadCache && steps.cache_check.outputs.cache-hit != 'true' }}
         run: |
-          set -e
+          set -xe
           ./download.sh
           ./util/clean_cache.sh
           tar czf .cache/cache.tar.gz .cache/downloads/*

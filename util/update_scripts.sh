@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eo pipefail
+set -xeo pipefail
 shopt -s globstar
 export LC_ALL=C
 
