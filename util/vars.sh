@@ -10,9 +10,13 @@ TARGET="$2"
 VARIANT="$3"
 shift 3
 
-if ! [[ -f "variants/${TARGET}-${VARIANT}.sh" ]]; then
-    echo "Invalid target/variant"
-    exit -1
+# Extract OS from target name (second field after splitting by '-')
+OS=$(echo "$TARGET" | cut -d'-' -f2)
+VARIANT_FILE="variants/any-${OS}-any-${VARIANT}.sh"
+
+if [[ ! -f "$VARIANT_FILE" ]]; then
+    echo "Invalid target/variant: $TARGET / $VARIANT"
+    exit 1
 fi
 
 LICENSE_FILE="COPYING.LGPLv2.1"

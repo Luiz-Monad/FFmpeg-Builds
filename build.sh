@@ -4,9 +4,9 @@ shopt -s globstar
 cd "$(dirname "$0")"
 source util/vars.sh
 
-source "variants/${TARGET}-${VARIANT}.sh"
+source "${VARIANT_FILE}"
 
-for addin in ${AD DINS[*]}; do
+for addin in ${ADDINS[*]}; do
     source "addins/${addin}.sh"
 done
 
