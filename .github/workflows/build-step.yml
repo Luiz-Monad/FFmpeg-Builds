@@ -133,7 +133,6 @@ jobs:
       context: .
       imageName: ${{ inputs.target }}-${{ inputs.variant }}
       readDownloadCache: true
-      generator: ./generate.sh ${{ inputs.runner }} ${{ inputs.target }} ${{ inputs.variant }}
 
   build_ffmpeg:
     name: Build ffmpeg

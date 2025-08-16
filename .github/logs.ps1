@@ -11,7 +11,7 @@ function Get-LatestRun {
 
 function Get-RunCompareKey($run) {
     if (-not $run) { return "" }
-    "$($run.databaseId)-$($run.status)"
+    "$($run.databaseId)-$($run.status)-$($run.updatedAt)"
 }
 
 function Get-RunView($run) {

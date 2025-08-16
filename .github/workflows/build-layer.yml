@@ -47,6 +47,11 @@ on:
         required: true
         type: string
 
+      imageTag:
+        description: 'Tag of the layer image'
+        type: string
+        default: latest
+
       writeDownloadCache:
         description: 'Generate or update the download cache'
         type: boolean
@@ -126,10 +131,12 @@ jobs:
           pull: true
           push: true
           provenance: false
-          target: ${{ inputs.target }}
-          tags: ${{ steps.imagename.outputs.name }}:latest
-          cache-to: type=registry,mode=max,ref=${{ steps.imagename.outputs.name }}:cache
-          cache-from: type=registry,ref=${{ steps.imagename.outputs.name }}:cache
+          target: ${{ inputs.layer }}
+          tags: ${{ steps.imagename.outputs.name }}:${{ inputs.imageTag }}                  
+          cache-from: type=local,src=/opt/action-runner/.cache/${{ steps.imagename.outputs.name }}
+          cache-to: type=local,dest=/opt/action-runner/.cache/${{ steps.imagename.outputs.name }}
+          # cache-from: type=registry,ref=${{ steps.imagename.outputs.name }}:cache-${{ inputs.imageTag }}
+          # cache-to: type=registry,mode=max,compression=zstd,ref=${{ steps.imagename.outputs.name }}:cache-${{ inputs.imageTag }}
           secrets: |
             "NGROK_TOKEN=${{ secrets.NGROK_TOKEN }}"
             "NGROK_SSH_PUBKEY=${{ secrets.NGROK_SSH_PUBKEY }}"
