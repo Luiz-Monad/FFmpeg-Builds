@@ -110,6 +110,15 @@ jobs:
       context: images/target-${{ inputs.target }}
       imageName: target-${{ inputs.target }}
 
+  build_target_variant_generator:
+    name: Build target variant image
+    needs: start
+    if: ${{ inputs.buildTargetVariant }}
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - run: ./generate.sh ${{ inputs.runner }} ${{ inputs.target }} ${{ inputs.variant }}
+
+
   build_target_variant:
     name: Build target variant image
     needs: start
