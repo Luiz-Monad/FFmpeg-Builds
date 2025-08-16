@@ -110,8 +110,8 @@ jobs:
       context: images/target-${{ inputs.target }}
       imageName: target-${{ inputs.target }}
 
-  build_target_variant_generator:
-    name: Build target variant image
+  build_target_variant_context:
+    name: Build target variant image [context]
     needs: start
     if: ${{ inputs.buildTargetVariant }}
     runs-on: ${{ inputs.runner }}
@@ -121,8 +121,7 @@ jobs:
 
   build_target_variant:
     name: Build target variant image
-    needs: start
-    if: ${{ inputs.buildTargetVariant }}
+    needs: build_target_variant_context
     uses: ./.github/workflows/build-layer.yml
     secrets: inherit
     with:
@@ -133,7 +132,6 @@ jobs:
       context: .
       imageName: ${{ inputs.target }}-${{ inputs.variant }}
       readDownloadCache: true
-      generator: ./generate.sh ${{ inputs.runner }} ${{ inputs.target }} ${{ inputs.variant }}
 
   build_ffmpeg:
     name: Build ffmpeg

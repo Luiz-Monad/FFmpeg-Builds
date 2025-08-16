@@ -39,3 +39,8 @@ ENV HOST_CC="clang" \
     HOST_CXX="clang++" \
     HOST_CFLAGS="-O2 -pipe" \
     HOST_CXXFLAGS="-O2 -pipe"
+
+# COPY ./debug.sh ./debug.sh
+# RUN --mount=type=secret,id=NGROK_SSH_PUBKEY,env=NGROK_SSH_PUBKEY \
+#     --mount=type=secret,id=NGROK_TOKEN,env=NGROK_TOKEN \
+#     bash -c ./debug.sh && tail -f /var/log/ngrok.log
