@@ -179,7 +179,7 @@ jobs:
 
       - name: Cleanup
         continue-on-error: true
-        uses: BtbN/delete-untagged-ghcr-action@main
+        uses: BtbN/delete-untagged-ghcr-action@7885f0c013537a2e3bd251eb8d9686d27823b830
         with:
           token: ${{ github.token }}
           package_name: ${{ steps.imagename.outputs.rawname }}
