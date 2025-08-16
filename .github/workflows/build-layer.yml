@@ -38,10 +38,9 @@ on:
         required: true
         type: string
 
-      generator:
-        description: 'Name of context generator'
+      layer:
+        description: 'Docker build target layer'
         type: string
-        default: ''
 
       imageName:
         description: 'Name of the layer image'
@@ -127,6 +126,7 @@ jobs:
           pull: true
           push: true
           provenance: false
+          target: ${{ inputs.target }}
           tags: ${{ steps.imagename.outputs.name }}:latest
           cache-to: type=registry,mode=max,ref=${{ steps.imagename.outputs.name }}:cache
           cache-from: type=registry,ref=${{ steps.imagename.outputs.name }}:cache
